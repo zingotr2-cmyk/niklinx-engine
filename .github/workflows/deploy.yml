@@ -1,0 +1,53 @@
+# DRO Auto-Deploy — triggers Render deployment on every push to main
+# Supports both Deploy Hook URLs and Render API Key authentication
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy API service
+        run: |
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK_API }}" ]; then
+            echo "Using deploy hook..."
+            curl -sS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_API }}" > /dev/null
+          elif [ -n "${{ secrets.RENDER_API_KEY }}" ] && [ -n "${{ secrets.RENDER_SERVICE_ID_API }}" ]; then
+            echo "Using Render API..."
+            curl -sS -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_API }}/deploys" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{"clearCache":false}' > /dev/null
+          else
+            echo "No deploy hook or API credentials configured"
+            exit 1
+          fi
+          echo "API deploy triggered"
+
+      - name: Deploy Dashboard service
+        run: |
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK_DASHBOARD }}" ]; then
+            curl -sS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_DASHBOARD }}" > /dev/null
+          elif [ -n "${{ secrets.RENDER_API_KEY }}" ] && [ -n "${{ secrets.RENDER_SERVICE_ID_DASHBOARD }}" ]; then
+            curl -sS -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_DASHBOARD }}/deploys" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{"clearCache":false}' > /dev/null
+          else
+            echo "No deploy hook or API credentials configured"
+            exit 1
+          fi
+          echo "Dashboard deploy triggered"
+
+      - name: Notify
+        run: |
+          echo "::notice::Deploy triggered successfully"
+          echo "API:      https://dro-api.onrender.com/api/health"
+          echo "Dashboard: https://dro-dashboard.onrender.com"

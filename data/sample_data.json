@@ -1,0 +1,245 @@
+{
+  "products": [
+    {
+      "id": "prod_001",
+      "name": "Smart Color-Changing Foundation Stick",
+      "price": 34.99,
+      "sale_price": 19.99,
+      "category": "Beauty & Makeup",
+      "description": "Revolutionary color-changing foundation that adapts perfectly to your unique skin tone using micro-encapsulated pigment technology. Provides buildable coverage with a natural, second-skin finish.",
+      "supplier_price": 5.5,
+      "rating": 4.7,
+      "reviews": 2156,
+      "image": "https://placehold.co/400x400/FF6B6B/white?text=Foundation",
+      "competitor_stores": [
+        { "name": "Hestia Beauty", "monthly_traffic": 2300000, "monthly_sales": 19500000 },
+        { "name": "GlamourBox", "monthly_traffic": 1800000, "monthly_sales": 14200000 },
+        { "name": "SkinPerfect", "monthly_traffic": 950000, "monthly_sales": 7800000 }
+      ],
+      "tags": ["makeup", "foundation", "beauty", "color-changing", "skincare"]
+    },
+    {
+      "id": "prod_002",
+      "name": "Portable UV-C Sterilizer Wand",
+      "price": 49.99,
+      "sale_price": 29.99,
+      "category": "Home & Health",
+      "description": "Handheld UV-C sterilizer wand that kills 99.9% of germs and bacteria on any surface. Cordless, lightweight, and perfect for sanitizing groceries, phones, countertops, and travel items.",
+      "supplier_price": 8.2,
+      "rating": 4.4,
+      "reviews": 893,
+      "image": "https://placehold.co/400x400/4ECDC4/white?text=Sterilizer",
+      "competitor_stores": [
+        { "name": "CleanLife Tech", "monthly_traffic": 1200000, "monthly_sales": 8900000 },
+        { "name": "HomeShield Pro", "monthly_traffic": 780000, "monthly_sales": 5600000 }
+      ],
+      "tags": ["home", "health", "sterilizer", "uvc", "sanitizer", "travel"]
+    },
+    {
+      "id": "prod_003",
+      "name": "Ergonomic Memory Foam Lumbar Pillow",
+      "price": 39.99,
+      "sale_price": 24.99,
+      "category": "Home Office",
+      "description": "Premium memory foam lumbar support pillow for office chairs and car seats. Relieves back pain, improves posture, and features breathable mesh cover with adjustable straps.",
+      "supplier_price": 6.8,
+      "rating": 4.8,
+      "reviews": 3412,
+      "image": "https://placehold.co/400x400/45B7D1/white?text=Lumbar+Pillow",
+      "competitor_stores": [
+        { "name": "PosturePro", "monthly_traffic": 3200000, "monthly_sales": 28000000 },
+        { "name": "BackRelief Store", "monthly_traffic": 1500000, "monthly_sales": 12000000 },
+        { "name": "ErgoFit", "monthly_traffic": 1100000, "monthly_sales": 9400000 }
+      ],
+      "tags": ["office", "ergonomic", "back-pain", "lumbar", "cushion"]
+    },
+    {
+      "id": "prod_004",
+      "name": "LED Grow Light Strips for Plants",
+      "price": 28.99,
+      "sale_price": 18.99,
+      "category": "Garden & Outdoor",
+      "description": "Full-spectrum LED grow light strips with auto timer and 3 brightness modes. Perfect for indoor plants, succulents, and seed starting. USB powered with adhesive backing for easy installation.",
+      "supplier_price": 4.5,
+      "rating": 4.5,
+      "reviews": 1678,
+      "image": "https://placehold.co/400x400/96CEB4/white?text=Grow+Light",
+      "competitor_stores": [
+        { "name": "PlantJoy", "monthly_traffic": 980000, "monthly_sales": 7200000 },
+        { "name": "GrowWell", "monthly_traffic": 650000, "monthly_sales": 5100000 }
+      ],
+      "tags": ["garden", "plants", "grow-light", "indoor", "led"]
+    },
+    {
+      "id": "prod_005",
+      "name": "Magnetic Wireless Car Charger Mount",
+      "price": 32.99,
+      "sale_price": 19.99,
+      "category": "Electronics",
+      "description": "Strong magnetic wireless car charger mount compatible with all MagSafe phones. 15W fast charging, 360-degree adjustable arm, and one-touch release for easy phone access while driving.",
+      "supplier_price": 5.9,
+      "rating": 4.6,
+      "reviews": 2789,
+      "image": "https://placehold.co/400x400/6C5CE7/white?text=Car+Charger",
+      "competitor_stores": [
+        { "name": "TechMount", "monthly_traffic": 2100000, "monthly_sales": 16500000 },
+        { "name": "GadgetFlow", "monthly_traffic": 1400000, "monthly_sales": 11000000 },
+        { "name": "ChargePro", "monthly_traffic": 870000, "monthly_sales": 6900000 }
+      ],
+      "tags": ["electronics", "car", "charger", "magsafe", "wireless"]
+    },
+    {
+      "id": "prod_006",
+      "name": "Organic Bamboo Kitchen Towels (6-Pack)",
+      "price": 24.99,
+      "sale_price": 14.99,
+      "category": "Home & Kitchen",
+      "description": "Reusable organic bamboo kitchen towels that are 5x more absorbent than cotton. Each towel lasts 6+ months, replaces 60+ paper towel rolls, and is naturally antibacterial.",
+      "supplier_price": 3.8,
+      "rating": 4.7,
+      "reviews": 4521,
+      "image": "https://placehold.co/400x400/FFEAA7/black?text=Bamboo+Towel",
+      "competitor_stores": [
+        { "name": "EcoHome", "monthly_traffic": 2800000, "monthly_sales": 22000000 },
+        { "name": "GreenPlanet Goods", "monthly_traffic": 1200000, "monthly_sales": 9500000 },
+        { "name": "Sustainable Living", "monthly_traffic": 750000, "monthly_sales": 5800000 }
+      ],
+      "tags": ["kitchen", "eco-friendly", "bamboo", "reusable", "sustainable"]
+    },
+    {
+      "id": "prod_007",
+      "name": "Heated Shiatsu Neck Massager",
+      "price": 59.99,
+      "sale_price": 39.99,
+      "category": "Health & Wellness",
+      "description": "Deep-kneading Shiatsu neck massager with infrared heat therapy. Features 8 massage nodes, 3 speed levels, and adjustable compression. Perfect for tension relief after long work days.",
+      "supplier_price": 10.5,
+      "rating": 4.5,
+      "reviews": 1876,
+      "image": "https://placehold.co/400x400/E17055/white?text=Massager",
+      "competitor_stores": [
+        { "name": "RelaxPro", "monthly_traffic": 1900000, "monthly_sales": 14800000 },
+        { "name": "TensionAway", "monthly_traffic": 1100000, "monthly_sales": 8700000 }
+      ],
+      "tags": ["health", "massager", "neck", "shiatsu", "wellness"]
+    },
+    {
+      "id": "prod_008",
+      "name": "Smart Water Bottle with Temperature Display",
+      "price": 26.99,
+      "sale_price": 16.99,
+      "category": "Sports & Fitness",
+      "description": "Insulated smart water bottle with LED temperature display, time-to-drink reminders, and motivational glow rings. Keeps drinks cold 24hrs or hot 12hrs. BPA-free with leak-proof lid.",
+      "supplier_price": 4.2,
+      "rating": 4.3,
+      "reviews": 1234,
+      "image": "https://placehold.co/400x400/74B9FF/white?text=Smart+Bottle",
+      "competitor_stores": [
+        { "name": "HydrateTech", "monthly_traffic": 1600000, "monthly_sales": 12500000 },
+        { "name": "FitGear", "monthly_traffic": 900000, "monthly_sales": 7200000 },
+        { "name": "AquaSmart", "monthly_traffic": 500000, "monthly_sales": 4100000 }
+      ],
+      "tags": ["fitness", "water-bottle", "smart", "hydration", "insulated"]
+    }
+  ],
+  "store_templates": [
+    {
+      "id": "store_001",
+      "name": "Hestia Beauty",
+      "url": "https://hestiabeauty.com",
+      "niche": "Beauty & Makeup",
+      "monthly_revenue": 19500000,
+      "monthly_traffic": 2300000,
+      "product_name": "Color Changing Foundation",
+      "sections": [
+        "Hero with product name, rating & gradient CTA",
+        "Testimonial carousel with before/after photos",
+        "Pain point comparison table",
+        "Science/technology explainer with microcapsule diagram",
+        "Feature benefits grid with icons",
+        "Social proof counter (users sold, ratings)",
+        "Bundle pricing tier comparison",
+        "FAQ accordion with 8 common questions",
+        "Footer with trust badges & guarantee badge"
+      ],
+      "design_elements": {
+        "color_palette": ["#FFF5F5", "#FF6B6B", "#1A1A2E", "#FFD93D"],
+        "font_family": "Poppins",
+        "style": "minimalist, feminine, high-end luxury",
+        "layout": "long-form sales page with sticky add-to-cart"
+      }
+    },
+    {
+      "id": "store_002",
+      "name": "TechMount",
+      "url": "https://techmount.io",
+      "niche": "Electronics",
+      "monthly_revenue": 16500000,
+      "monthly_traffic": 2100000,
+      "product_name": "Magnetic Wireless Car Charger",
+      "sections": [
+        "Hero with product video demo",
+        "Compatibility chart for phone models",
+        "3-step installation guide with GIFs",
+        "Speed comparison with competitors",
+        "Customer review wall with star ratings",
+        "Technical specifications table",
+        "Bundle offer (charger + cable + vent clip)",
+        "Limited-time countdown timer section"
+      ],
+      "design_elements": {
+        "color_palette": ["#F8F9FA", "#6C5CE7", "#2D3436", "#00CEC9"],
+        "font_family": "Inter",
+        "style": "sleek, tech-forward, minimalist",
+        "layout": "product-focused single page with floating buy button"
+      }
+    },
+    {
+      "id": "store_003",
+      "name": "EcoHome Essentials",
+      "url": "https://ecohomeessentials.com",
+      "niche": "Home & Kitchen",
+      "monthly_revenue": 22000000,
+      "monthly_traffic": 2800000,
+      "product_name": "Organic Bamboo Kitchen Towels",
+      "sections": [
+        "Hero with sustainability statistic banner",
+        "Product comparison vs paper towels",
+        "Environmental impact calculator",
+        "Customer transformation stories",
+        "Subscription pricing options",
+        "Certification badges (USDA, FSC, etc.)",
+        "User-generated photo gallery",
+        "Guarantee section with money-back promise"
+      ],
+      "design_elements": {
+        "color_palette": ["#F0FFF4", "#2ECC71", "#1A3C34", "#F39C12"],
+        "font_family": "Montserrat",
+        "style": "earthy, trustworthy, eco-conscious",
+        "layout": "storytelling scroll with sticky header"
+      }
+    }
+  ],
+  "copy_templates": {
+    "hero_headline": "Finally, a Foundation That Actually Matches Your Skin",
+    "hero_subheadline": "The color-changing formula adapts to YOUR unique skin tone in seconds — no guessing, no mismatches, no returns",
+    "pain_hook": "Tired of foundations that are too light, too dark, or just... wrong?",
+    "brand_statement": "SealSkin — Foundation That Finds You",
+    "mechanisms": [
+      "Smart color-adapting microcapsules that activate on contact with your skin's pH",
+      "Skin-identical pigment technology that blends into any undertone",
+      "24-hour wear without touchups, transfers, or oxidation"
+    ],
+    "bullet_features": [
+      "Matches any skin tone automatically — no shade-matching required",
+      "Feels weightless like second skin with buildable medium-to-full coverage",
+      "Infused with hyaluronic acid and vitamin E for skincare benefits",
+      "Transfer-resistant, sweat-proof, and mask-friendly formula",
+      "Cruelty-free, vegan, and formulated without parabens or sulfates",
+      "One shade fits 98% of skin tones — clinically tested on 2000+ women"
+    ],
+    "testimonial_1": "I've finally found a foundation that works for my olive skin tone. The color change is like magic! — Sarah K.",
+    "testimonial_2": "At 54, foundation has been tricky for me. This stayed put 24 hours with zero retouch. Incredible! — Maria G.",
+    "testimonial_3": "The color-change is mind-blowing. It blends perfectly every single time. I'm never going back. — Jessica T."
+  }
+}

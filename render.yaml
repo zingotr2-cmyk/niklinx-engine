@@ -1,0 +1,51 @@
+# DRO Render Blueprint — auto-configures all services when repo is connected
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: dro-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app.routes_api:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile -
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8000
+      - key: DEBUG
+        value: false
+      - key: LOG_LEVEL
+        value: info
+      - key: WEB_CONCURRENCY
+        value: 2
+      - key: DRO_LICENSE_SECRET
+        generateValue: true
+      - key: DRO_LICENSE_SALT
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CLAUDE_API_KEY
+        sync: false
+      - key: DRO_LICENSE_KEY
+        sync: false
+
+  - type: web
+    name: dro-dashboard
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app/dashboard.py --server.port=$PORT --server.headless=true --browser.gatherUsageStats=false
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DRO_API_URL
+        fromService:
+          name: dro-api
+          type: web
+          property: hostport
