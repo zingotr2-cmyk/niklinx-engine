@@ -10,6 +10,7 @@ build/
 .env
 data/licenses/
 *.lic
+PROD_KEY.txt
 
 # IDE
 .vscode/
