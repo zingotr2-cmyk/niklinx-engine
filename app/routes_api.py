@@ -2,6 +2,11 @@
 DRO API Routes — FastAPI application with all endpoints.
 """
 
+import sys
+import os
+# Ensure project root is in path for gunicorn/uvicorn production
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse

@@ -2,6 +2,10 @@
 DRO AI Service — Unified interface for OpenAI, Claude, and mock AI.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import json
 import httpx
 from config import config
