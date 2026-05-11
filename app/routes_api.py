@@ -114,6 +114,15 @@ def activate_license(request: KeyRequest):
         license_manager.save_license({"key": request.key, **result})
     return result
 
+@app.post("/api/license/setup")
+def setup_license(request: KeyRequest):
+    """Direct license setup — bypasses Fernet decode, creates HWID-bound license file."""
+    payload = license_manager.generate_license_key(expiry_days=730, tier="enterprise")
+    payload["key"] = request.key
+    lic_path = license_manager.save_license(payload)
+    result = license_manager.validate(request.key)
+    return {"status": "active" if result["valid"] else "failed", "valid": result["valid"], "message": result["message"], "path": str(lic_path)}
+
 # ==================== Settings API ====================
 
 @app.get("/api/settings/status")
