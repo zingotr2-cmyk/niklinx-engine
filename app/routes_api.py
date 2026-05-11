@@ -9,7 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from typing import Optional
 import json
@@ -240,3 +241,17 @@ def health():
         "licensed": license_manager.is_licensed(),
         "modules": ["research", "store", "copywriting", "images", "ads", "campaign"],
     }
+
+# ==================== Dashboard SPA ====================
+
+DASHBOARD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard", "static")
+
+if os.path.isdir(DASHBOARD_DIR):
+    app.mount("/dashboard", StaticFiles(directory=DASHBOARD_DIR, html=True), name="dashboard")
+
+    @app.get("/dashboard/{path:path}")
+    def dashboard_spa(path: str):
+        file_path = os.path.join(DASHBOARD_DIR, path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(DASHBOARD_DIR, "index.html"))
