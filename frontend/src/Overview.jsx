@@ -17,6 +17,8 @@ function fetchHealth() {
     .then((d) => ({
       status: d.status || "unknown", ai_service: d.ai_service || "unknown", licensed: d.licensed || false,
       modules: d.modules || [],
+      search_engine: d.search_engine || "yellow",
+      search_providers: d.search_providers || {},
       metrics: {
         ai_images: 16, ai_videos: 8, orders: 147, revenue: 11996, conversion_rate: 3.2,
         ai_confidence: d.ai_service === "production" ? 94 : 0,
@@ -37,6 +39,7 @@ export default function Overview({ onNavigate }) {
   useEffect(() => { load(); const id = setInterval(load, 15000); return () => clearInterval(id); }, [load]);
 
   const live = health.status === "healthy" && health.ai_service === "production";
+  const searchStatus = health.search_engine;
   const m = health.metrics;
 
   const doSearch = async () => {
@@ -93,6 +96,14 @@ export default function Overview({ onNavigate }) {
         <div className="rounded-[24px] p-6 bg-[#F5F5F7] shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-[#111111]">Search Results ({searchResults.products?.length || 0})</h3>
+            {searchResults.health && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                searchResults.health.status === "green" ? "bg-green-100 text-green-700" :
+                searchResults.health.status === "yellow" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+              }`}>
+                {searchResults.health.status === "green" ? "Live" : searchResults.health.status === "yellow" ? "Partial" : "Offline"}
+              </span>
+            )}
             <button onClick={() => setSearchResults(null)} className="text-xs text-[#6B6B6B] hover:text-[#111111]">Clear</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
 import json
 
 from licensing import license_manager
@@ -20,6 +20,7 @@ from config import config
 from app.modules import product_research, store_analyzer, copywriter, image_generator, ad_creator, campaign_manager
 from app.modules.live_search import live_search, get_cached
 from app.services.scraper_service import scraper
+from app.services.global_search_service import search_global, get_search_health
 
 # ==================== FastAPI App ====================
 
@@ -108,6 +109,11 @@ class KeyRequest(BaseModel):
     service: str
     key: str = ""
 
+class GlobalSearchRequest(BaseModel):
+    query: str
+    region: str = "usa"
+    max_results: int = 20
+
 class ScrapeRequest(BaseModel):
     url: str
 
@@ -183,6 +189,12 @@ def research_live_search(request: SearchRequest):
         "ai_active": True,
         "providers": ["aliexpress", "amazon", "google_shopping"],
     }
+
+@app.post("/api/search")
+def global_search(request: GlobalSearchRequest):
+    """Global marketplace search with region support — returns normalized products from all connected providers."""
+    result = search_global(request.query, region=request.region, max_results=request.max_results)
+    return result
 
 @app.get("/api/research/live-search/{query:path}")
 def research_live_search_get(query: str):
@@ -272,11 +284,14 @@ def root():
 
 @app.get("/api/health")
 def health():
+    search_health = get_search_health()
     return {
         "status": "healthy",
         "ai_service": config.active_ai_service,
         "licensed": license_manager.is_licensed(),
         "modules": ["research", "store", "copywriting", "images", "ads", "campaign"],
+        "search_engine": search_health["status"],
+        "search_providers": search_health["providers"],
     }
 
 # ==================== Dashboard SPA ====================
