@@ -26,9 +26,9 @@ services:
       - key: WEB_CONCURRENCY
         value: 2
       - key: DRO_LICENSE_SECRET
-        generateValue: true
+        value: DRO_AGENTIC_COMMERCE_2024
       - key: DRO_LICENSE_SALT
-        generateValue: true
+        value: DRO_LICENSE_SALT
       - key: OPENAI_API_KEY
         sync: false
       - key: CLAUDE_API_KEY

@@ -97,7 +97,14 @@ class SecureConfig:
         return int(self.get("PORT", "8000"))
 
     @property
+    def ai_mode(self) -> str:
+        return self.get("AI_MODE", "auto")
+
+    @property
     def active_ai_service(self) -> str:
+        mode = self.ai_mode
+        if mode == "production":
+            return "production"
         if self.claude_key:
             return "claude"
         if self.openai_key:
