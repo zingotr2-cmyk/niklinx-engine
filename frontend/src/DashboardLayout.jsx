@@ -1,13 +1,28 @@
+import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Overview from "./Overview";
+import ProductResearch from "./ProductResearch";
+import StoreInsights from "./StoreInsights";
+import SettingsPage from "./SettingsPage";
 
 export default function DashboardLayout() {
+  const [view, setView] = useState("overview");
+
+  const renderView = () => {
+    switch (view) {
+      case "research": return <ProductResearch />;
+      case "store": return <StoreInsights />;
+      case "settings": return <SettingsPage />;
+      default: return <Overview onNavigate={setView} />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <Sidebar />
+      <Sidebar activeView={view} onNavigate={setView} />
       <main className="pl-64 min-h-screen">
         <div className="max-w-6xl mx-auto px-8 py-8">
-          <Overview />
+          {renderView()}
         </div>
       </main>
     </div>

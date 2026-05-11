@@ -4,15 +4,15 @@ import { LayoutDashboard, Search, Image, ShoppingCart, BarChart3, Settings, LogO
 const API = "https://niklinx-engine-v2.onrender.com/api/health";
 
 const NAV = [
-  { icon: LayoutDashboard, label: "Overview", active: true },
-  { icon: Search, label: "Product Research", active: false },
-  { icon: Image, label: "Media Studio", active: false },
-  { icon: ShoppingCart, label: "Store Insights", active: false },
-  { icon: BarChart3, label: "Analytics", active: false },
-  { icon: Settings, label: "Settings", active: false },
+  { icon: LayoutDashboard, label: "Overview", view: "overview" },
+  { icon: Search, label: "Product Research", view: "research" },
+  { icon: Image, label: "Media Studio", view: "media" },
+  { icon: ShoppingCart, label: "Store Insights", view: "store" },
+  { icon: BarChart3, label: "Analytics", view: "analytics" },
+  { icon: Settings, label: "Settings", view: "settings" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ activeView, onNavigate }) {
   const [live, setLive] = useState(false);
 
   const poll = useCallback(() => {
@@ -42,14 +42,15 @@ export default function Sidebar() {
       <nav className="flex-1 px-3 space-y-1">
         {NAV.map((item) => (
           <button
-            key={item.label}
+            key={item.view}
+            onClick={() => onNavigate(item.view)}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              item.active
+              activeView === item.view
                 ? "bg-[#2563EB] text-white shadow-sm"
                 : "text-[#6B6B6B] hover:text-[#111111] hover:bg-[#F5F5F7]"
             }`}
           >
-            <item.icon size={18} strokeWidth={item.active ? 2.5 : 1.5} />
+            <item.icon size={18} strokeWidth={activeView === item.view ? 2.5 : 1.5} />
             {item.label}
           </button>
         ))}

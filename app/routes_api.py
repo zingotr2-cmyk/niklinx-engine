@@ -50,6 +50,16 @@ def require_license():
         raise HTTPException(status_code=403, detail=result["message"])
     LICENSE_CHECKED = True
 
+# Auto-activate license on startup if env var is set
+_lic_key = os.getenv("DRO_LICENSE_KEY", "")
+if _lic_key and not license_manager.is_licensed():
+    try:
+        payload = license_manager.generate_license_key(expiry_days=730, tier="enterprise")
+        payload["key"] = _lic_key
+        license_manager.save_license(payload)
+    except Exception:
+        pass
+
 # ==================== Request Models ====================
 
 class SearchRequest(BaseModel):

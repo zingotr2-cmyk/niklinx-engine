@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Activity, Image, Video, ShoppingBag, TrendingUp, Target, Zap } from "lucide-react";
+import { Activity, Image, Video, ShoppingBag, TrendingUp, Target, Zap, Search, ArrowRight, RefreshCw } from "lucide-react";
 import StatCard from "./components/StatCard";
 import ProgressRing from "./components/ProgressRing";
 
-const API = "https://niklinx-engine-v2.onrender.com/api/health";
+const API = "https://niklinx-engine-v2.onrender.com";
 
 const FALLBACK = {
   status: "healthy", ai_service: "production", licensed: true,
@@ -12,7 +12,7 @@ const FALLBACK = {
 };
 
 function fetchHealth() {
-  return fetch(API, { cache: "no-store" })
+  return fetch(`${API}/api/health`, { cache: "no-store" })
     .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
     .then((d) => ({
       status: d.status || "unknown", ai_service: d.ai_service || "unknown", licensed: d.licensed || false,
@@ -25,9 +25,12 @@ function fetchHealth() {
     .catch(() => FALLBACK);
 }
 
-export default function Overview() {
+export default function Overview({ onNavigate }) {
   const [health, setHealth] = useState(FALLBACK);
   const [date] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [searching, setSearching] = useState(false);
 
   const load = useCallback(() => fetchHealth().then(setHealth), []);
 
@@ -35,6 +38,20 @@ export default function Overview() {
 
   const live = health.status === "healthy" && health.ai_service === "production";
   const m = health.metrics;
+
+  const doSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const r = await fetch(`${API}/api/research/search`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ max_price: 100, category: searchQuery }),
+      });
+      const data = await r.json();
+      setSearchResults(data);
+    } catch { setSearchResults(null) }
+    setSearching(false);
+  };
 
   return (
     <div className="space-y-8">
@@ -51,6 +68,47 @@ export default function Overview() {
           <span className="text-sm font-medium text-[#111111]">{live ? "Live" : "Degraded"}</span>
         </div>
       </div>
+
+      <div className="flex items-center gap-3 p-4 rounded-[24px] bg-[#F5F5F7] shadow-sm">
+        <Search size={18} className="text-[#6B6B6B]" />
+        <input
+          type="text"
+          placeholder="Search products by category (e.g., Beauty, Electronics)..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && doSearch()}
+          className="flex-1 bg-transparent border-none outline-none text-sm text-[#111111] placeholder:text-[#6B6B6B]"
+        />
+        <button
+          onClick={doSearch}
+          disabled={searching}
+          className="px-4 py-2 rounded-xl bg-[#2563EB] text-white text-sm font-medium hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center gap-2"
+        >
+          {searching ? <RefreshCw size={14} className="animate-spin" /> : <ArrowRight size={14} />}
+          Search
+        </button>
+      </div>
+
+      {searchResults && (
+        <div className="rounded-[24px] p-6 bg-[#F5F5F7] shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[#111111]">Search Results ({searchResults.products?.length || 0})</h3>
+            <button onClick={() => setSearchResults(null)} className="text-xs text-[#6B6B6B] hover:text-[#111111]">Clear</button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(searchResults.products || []).slice(0, 6).map((p) => (
+              <div key={p.id} className="rounded-2xl p-4 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <div className="text-sm font-semibold text-[#111111]">{p.name}</div>
+                <div className="text-xs text-[#6B6B6B] mt-1">{p.category}</div>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-sm font-bold text-[#111111]">${p.sale_price || p.price}</span>
+                  <span className="text-xs text-green-600">{p.rating}/5</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 rounded-[24px] p-8 flex items-center justify-center relative bg-[#F5F5F7] shadow-sm">
@@ -81,11 +139,15 @@ export default function Overview() {
         <h2 className="text-xl font-semibold text-[#111111] mb-4 tracking-tight">System Modules</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {health.modules.map((mod) => (
-            <div key={mod} className="rounded-[24px] p-5 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.03] bg-[#F5F5F7] shadow-sm">
+            <button
+              key={mod}
+              onClick={() => onNavigate(mod === "research" ? "research" : mod === "store" ? "store" : mod === "images" || mod === "copywriting" ? "media" : "overview")}
+              className="rounded-[24px] p-5 flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.03] bg-[#F5F5F7] shadow-sm cursor-pointer hover:shadow-md"
+            >
               <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
               <span className="text-sm font-medium text-[#111111] capitalize">{mod}</span>
               <span className="text-xs text-[#6B6B6B]">Active</span>
-            </div>
+            </button>
           ))}
         </div>
       </div>

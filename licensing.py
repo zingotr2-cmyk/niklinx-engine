@@ -35,23 +35,27 @@ class LicenseManager:
     def __init__(self, public_key: str = None):
         self.public_key = public_key or os.getenv("DRO_LICENSE_SECRET", "DRO_AGENTIC_COMMERCE_2024")
         self._cache = {}
+        self._hwid = None
 
     # ==================== HWID Generation ====================
 
     def get_hwid(self) -> str:
-        """Generate unique hardware ID from machine components."""
+        """Generate unique hardware ID from machine components (cached per-process)."""
+        if self._hwid:
+            return self._hwid
         try:
             components = [
                 platform.node(),
                 str(uuid.getnode()),
                 platform.processor() or "unknown",
                 platform.machine(),
-                hashlib.md5(platform.system().encode()).hexdigest(),
+                hashlib.sha3_256(platform.system().encode()).hexdigest(),
             ]
             raw = "-".join(components)
-            return hashlib.sha3_256(raw.encode()).hexdigest()[:32]
+            self._hwid = hashlib.sha3_256(raw.encode()).hexdigest()[:32]
         except Exception:
-            return hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:32]
+            self._hwid = hashlib.sha3_256(str(uuid.uuid4()).encode()).hexdigest()[:32]
+        return self._hwid
 
     def get_hwid_short(self) -> str:
         """Short 8-char HWID for display."""
