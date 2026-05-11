@@ -18,6 +18,7 @@ import json
 from licensing import license_manager
 from config import config
 from app.modules import product_research, store_analyzer, copywriter, image_generator, ad_creator, campaign_manager
+from app.modules.live_search import live_search, get_cached
 from app.services.scraper_service import scraper
 
 # ==================== FastAPI App ====================
@@ -167,6 +168,32 @@ def research_analyze(request: AnalyzeRequest):
     if not result:
         raise HTTPException(status_code=404, detail="Product not found")
     return result
+
+@app.post("/api/research/live-search")
+def research_live_search(request: SearchRequest):
+    """Live global search — fetches products from AliExpress, Amazon, Google Shopping in real time."""
+    query = (request.category or "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Search query required")
+    products = live_search(query, max_results=30)
+    return {
+        "products": products,
+        "source": "live",
+        "total": len(products),
+        "ai_active": True,
+        "providers": ["aliexpress", "amazon", "google_shopping"],
+    }
+
+@app.get("/api/research/live-search/{query:path}")
+def research_live_search_get(query: str):
+    """GET variant for quick testing."""
+    products = live_search(query, max_results=30)
+    return {
+        "products": products,
+        "source": "live",
+        "total": len(products),
+        "ai_active": True,
+    }
 
 # ==================== Store API ====================
 

@@ -97,13 +97,19 @@ export default function Overview({ onNavigate }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(searchResults.products || []).slice(0, 6).map((p) => (
-              <div key={p.id} className="rounded-2xl p-4 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                <div className="text-sm font-semibold text-[#111111]">{p.name}</div>
-                <div className="text-xs text-[#6B6B6B] mt-1">{p.category}</div>
+              <div key={p.id || `sr-${Math.random()}`} className="rounded-2xl p-4 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-start justify-between">
+                  <div className="text-sm font-semibold text-[#111111] truncate flex-1">{p.name}</div>
+                  {p.source === "live" && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 shrink-0 ml-1">Live</span>}
+                </div>
+                <div className="text-xs text-[#6B6B6B] mt-0.5">{p.category || p.source?.replace("_", " ") || ""}</div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-sm font-bold text-[#111111]">${p.sale_price || p.price}</span>
                   <span className="text-xs text-green-600">{p.rating}/5</span>
                 </div>
+                {p.winning_score && (
+                  <div className="mt-1 text-[10px] text-[#2563EB] font-medium">Score: {p.winning_score}</div>
+                )}
               </div>
             ))}
           </div>
