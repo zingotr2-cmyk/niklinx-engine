@@ -140,6 +140,59 @@
         { "name": "AquaSmart", "monthly_traffic": 500000, "monthly_sales": 4100000 }
       ],
       "tags": ["fitness", "water-bottle", "smart", "hydration", "insulated"]
+    },
+    {
+      "id": "prod_009",
+      "name": "Premium Microfiber Car Detailing Kit (16-Piece)",
+      "price": 44.99,
+      "sale_price": 29.99,
+      "category": "Automotive",
+      "description": "Complete car detailing kit with 16 premium microfiber towels. Includes waffle weave drying towel, glass cleaning cloths, wax applicators, and buffing pads. Lint-free, scratch-safe, and machine washable for 500+ washes.",
+      "supplier_price": 6.5,
+      "rating": 4.8,
+      "reviews": 5234,
+      "image": "https://placehold.co/400x400/2D3436/white?text=Car+Detailing+Kit",
+      "competitor_stores": [
+        { "name": "AutoShine Pro", "monthly_traffic": 3500000, "monthly_sales": 31000000 },
+        { "name": "DetailMaster", "monthly_traffic": 2100000, "monthly_sales": 18500000 },
+        { "name": "CleanDrive", "monthly_traffic": 1400000, "monthly_sales": 12000000 }
+      ],
+      "tags": ["automotive", "car", "detailing", "microfiber", "cleaning", "car-care"]
+    },
+    {
+      "id": "prod_010",
+      "name": "Cordless Electric Pressure Washer",
+      "price": 89.99,
+      "sale_price": 59.99,
+      "category": "Automotive",
+      "description": "Portable cordless electric pressure washer with 600 PSI max power. Dual lithium batteries provide 45 minutes of runtime. Includes foam cannon, turbo nozzle, and carrying case. Perfect for cars, patios, and outdoor furniture.",
+      "supplier_price": 14.5,
+      "rating": 4.6,
+      "reviews": 3120,
+      "image": "https://placehold.co/400x400/0984E3/white?text=Pressure+Washer",
+      "competitor_stores": [
+        { "name": "PowerWash Plus", "monthly_traffic": 2800000, "monthly_sales": 24000000 },
+        { "name": "CleanMachine", "monthly_traffic": 1700000, "monthly_sales": 14500000 }
+      ],
+      "tags": ["automotive", "car", "pressure-washer", "cleaning", "outdoor", "car-wash"]
+    },
+    {
+      "id": "prod_011",
+      "name": "Ceramic Car Wax Spray - Hydrophobic Coating",
+      "price": 34.99,
+      "sale_price": 22.99,
+      "category": "Automotive",
+      "description": "Professional-grade ceramic spray wax with SiO2 polymer technology. Provides 12 months of hydrophobic protection, UV resistance, and deep gloss. Easy spray-on, wipe-off application. One bottle covers 2-3 full-size vehicles.",
+      "supplier_price": 4.8,
+      "rating": 4.7,
+      "reviews": 8456,
+      "image": "https://placehold.co/400x400/FDCB6E/black?text=Ceramic+Wax",
+      "competitor_stores": [
+        { "name": "CeramicGuard", "monthly_traffic": 4200000, "monthly_sales": 38000000 },
+        { "name": "ShineArmor", "monthly_traffic": 2500000, "monthly_sales": 22000000 },
+        { "name": "WaxMaster Pro", "monthly_traffic": 1100000, "monthly_sales": 9500000 }
+      ],
+      "tags": ["automotive", "car", "ceramic", "wax", "coating", "detailing", "car-care"]
     }
   ],
   "store_templates": [

@@ -9,7 +9,7 @@ DATA_PATH = Path("data/sample_data.json")
 CATEGORIES = [
     "Beauty & Makeup", "Health & Wellness", "Weight Loss",
     "Skincare", "Home & Kitchen", "Fashion", "Fitness",
-    "Pet Supplies", "Baby & Kids", "Electronics",
+    "Pet Supplies", "Baby & Kids", "Electronics", "Automotive",
 ]
 
 
@@ -20,9 +20,22 @@ def _load_data() -> dict:
 def search(category: str = None, max_price: float = 100, min_rating: float = 0) -> list:
     data = _load_data()
     results = []
+    keyword = category.strip().lower() if category else ""
     for p in data["products"]:
-        if category and p["category"] != category:
-            continue
+        if keyword:
+            match = False
+            if keyword in p["category"].lower():
+                match = True
+            if keyword in p["name"].lower():
+                match = True
+            if keyword in p["description"].lower():
+                match = True
+            for tag in p.get("tags", []):
+                if keyword in tag.lower():
+                    match = True
+                    break
+            if not match:
+                continue
         if p["price"] > max_price:
             continue
         if p["rating"] < min_rating:
