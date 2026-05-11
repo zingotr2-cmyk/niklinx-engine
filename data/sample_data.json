@@ -193,6 +193,304 @@
         { "name": "WaxMaster Pro", "monthly_traffic": 1100000, "monthly_sales": 9500000 }
       ],
       "tags": ["automotive", "car", "ceramic", "wax", "coating", "detailing", "car-care"]
+    },
+    {
+      "id": "prod_012",
+      "name": "Electric Spin Scrubber with 6 Interchangeable Heads",
+      "price": 39.99,
+      "sale_price": 24.99,
+      "category": "Home Cleaning",
+      "description": "Cordless electric spin scrubber with 450 RPM motor and 6 interchangeable brush heads for tiles, grout, glass, and floors. Extendable handle reaches high walls and tight corners. Rechargeable battery runs 90 minutes per charge.",
+      "supplier_price": 6.2,
+      "rating": 4.7,
+      "reviews": 6780,
+      "image": "https://placehold.co/400x400/00B894/white?text=Spin+Scrubber",
+      "tags": ["home", "cleaning", "scrubber", "bathroom", "tile", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "CleanPro", "monthly_traffic": 3100000, "monthly_sales": 26500000 },
+        { "name": "ScrubMaster", "monthly_traffic": 1800000, "monthly_sales": 15200000 },
+        { "name": "HomeShine", "monthly_traffic": 920000, "monthly_sales": 7800000 }
+      ]
+    },
+    {
+      "id": "prod_013",
+      "name": "Automatic Robot Window Cleaner",
+      "price": 129.99,
+      "sale_price": 89.99,
+      "category": "Home Cleaning",
+      "description": "Smart robotic window cleaner with AI path planning and edge detection. Dual suction pads hold securely on glass, tile, and smooth surfaces. Cleans both sides of windows in a single pass. App-controlled with scheduled cleaning mode.",
+      "supplier_price": 22.0,
+      "rating": 4.4,
+      "reviews": 2340,
+      "image": "https://placehold.co/400x400/0984E3/white?text=Robot+Cleaner",
+      "tags": ["home", "cleaning", "window", "robot", "smart-home", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "SmartClean", "monthly_traffic": 1900000, "monthly_sales": 16500000 },
+        { "name": "WindowBot", "monthly_traffic": 1100000, "monthly_sales": 9200000 }
+      ]
+    },
+    {
+      "id": "prod_014",
+      "name": "Portable Carpet & Upholstery Spot Cleaner",
+      "price": 79.99,
+      "sale_price": 54.99,
+      "category": "Home Cleaning",
+      "description": "Portable spot cleaner with 800W suction power for carpets, rugs, sofas, and car interiors. Removes pet stains, wine spills, and dirt with water and cleaning solution. Lightweight 8lb design with 10ft hose reach.",
+      "supplier_price": 13.5,
+      "rating": 4.6,
+      "reviews": 4560,
+      "image": "https://placehold.co/400x400/E17055/white?text=Spot+Cleaner",
+      "tags": ["home", "cleaning", "carpet", "upholstery", "stain-remover", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "BriteClean", "monthly_traffic": 2400000, "monthly_sales": 20500000 },
+        { "name": "SpotAway", "monthly_traffic": 1400000, "monthly_sales": 11800000 },
+        { "name": "PetFresh", "monthly_traffic": 870000, "monthly_sales": 7200000 }
+      ]
+    },
+    {
+      "id": "prod_015",
+      "name": "Steam Mop with Reusable Microfiber Pads",
+      "price": 49.99,
+      "sale_price": 34.99,
+      "category": "Home Cleaning",
+      "description": "High-temperature steam mop that sanitizes floors without chemicals. Heats up in 15 seconds, kills 99.9% of bacteria, and comes with 3 reusable microfiber pads. Swivel head reaches under furniture. 12oz water tank provides 20 minutes of steam.",
+      "supplier_price": 7.8,
+      "rating": 4.5,
+      "reviews": 8920,
+      "image": "https://placehold.co/400x400/00CEC9/white?text=Steam+Mop",
+      "tags": ["home", "cleaning", "steam-mop", "floor", "sanitize", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "SteamPro", "monthly_traffic": 3600000, "monthly_sales": 31000000 },
+        { "name": "MopMaster", "monthly_traffic": 2100000, "monthly_sales": 17800000 },
+        { "name": "CleanSteam", "monthly_traffic": 1050000, "monthly_sales": 8900000 }
+      ]
+    },
+    {
+      "id": "prod_016",
+      "name": "Multi-Purpose Natural Cleaning Paste",
+      "price": 19.99,
+      "sale_price": 12.99,
+      "category": "Home Cleaning",
+      "description": "All-natural coconut oil cleaning paste that works on every surface. Removes grease, stickers, soap scum, and marks from stainless steel, glass, wood, tile, and plastic. Plant-based ingredients, biodegradable, and smells like fresh lemons.",
+      "supplier_price": 2.9,
+      "rating": 4.8,
+      "reviews": 12300,
+      "image": "https://placehold.co/400x400/FDCB6E/black?text=Clean+Paste",
+      "tags": ["home", "cleaning", "natural", "eco-friendly", "multi-surface", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "EcoClean", "monthly_traffic": 2800000, "monthly_sales": 24000000 },
+        { "name": "GreenHome", "monthly_traffic": 1500000, "monthly_sales": 12500000 }
+      ]
+    },
+    {
+      "id": "prod_017",
+      "name": "Cordless Stick Vacuum Cleaner with 45min Runtime",
+      "price": 99.99,
+      "sale_price": 69.99,
+      "category": "Home Cleaning",
+      "description": "Lightweight cordless stick vacuum with 25KPa cyclonic suction. Converts to handheld for cars and furniture. HEPA filtration captures 99.97% of allergens. LED headlight illuminates hidden dust. Wall-mountable charging dock included.",
+      "supplier_price": 16.0,
+      "rating": 4.6,
+      "reviews": 15400,
+      "image": "https://placehold.co/400x400/6C5CE7/white?text=Stick+Vacuum",
+      "tags": ["home", "cleaning", "vacuum", "cordless", "HEPA", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "PowerVac", "monthly_traffic": 4500000, "monthly_sales": 40000000 },
+        { "name": "CleanSweep", "monthly_traffic": 2600000, "monthly_sales": 22000000 },
+        { "name": "QuickPick", "monthly_traffic": 1300000, "monthly_sales": 11000000 }
+      ]
+    },
+    {
+      "id": "prod_018",
+      "name": "Silicone Fast Drying Dish Mat with Drain Tray",
+      "price": 18.99,
+      "sale_price": 12.99,
+      "category": "Home Cleaning",
+      "description": "Extra-large silicone dish drying mat with built-in drain tray and raised ridges for airflow. Holds up to 30 dishes. Folds flat for storage. Heat resistant to 500F, BPA-free, and dishwasher safe. Non-slip grip keeps mat in place.",
+      "supplier_price": 2.5,
+      "rating": 4.5,
+      "reviews": 9870,
+      "image": "https://placehold.co/400x400/55EFC4/black?text=Dish+Mat",
+      "tags": ["home", "kitchen", "cleaning", "silicone", "dish-mat", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "KitchenMate", "monthly_traffic": 2100000, "monthly_sales": 17500000 },
+        { "name": "HomeHelper", "monthly_traffic": 980000, "monthly_sales": 8200000 }
+      ]
+    },
+    {
+      "id": "prod_019",
+      "name": "Portable Upholstery & Fabric Cleaner Machine",
+      "price": 69.99,
+      "sale_price": 49.99,
+      "category": "Home Cleaning",
+      "description": "Handheld upholstery cleaner with 600W motor for deep cleaning sofas, car seats, mattresses, and curtains. Dual tank system separates clean and dirty water. Includes crevice tool and stain brush. Removes pet odors and deep-set stains.",
+      "supplier_price": 11.5,
+      "rating": 4.4,
+      "reviews": 3450,
+      "image": "https://placehold.co/400x400/D63031/white?text=Fabric+Cleaner",
+      "tags": ["home", "cleaning", "upholstery", "fabric", "carpet", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "DeepClean", "monthly_traffic": 1600000, "monthly_sales": 13500000 },
+        { "name": "StainFighter", "monthly_traffic": 850000, "monthly_sales": 7100000 }
+      ]
+    },
+    {
+      "id": "prod_020",
+      "name": "Handheld Garment & Fabric Steamer",
+      "price": 34.99,
+      "sale_price": 22.99,
+      "category": "Home Cleaning",
+      "description": "Portable handheld steamer with 1000W fast heating and continuous steam for 15 minutes. Works on clothes, curtains, upholstery, and bedding. Removes wrinkles, odors, and kills 99% of dust mites. Compact design for travel.",
+      "supplier_price": 5.2,
+      "rating": 4.3,
+      "reviews": 6230,
+      "image": "https://placehold.co/400x400/74B9FF/white?text=Garment+Steamer",
+      "tags": ["home", "cleaning", "steamer", "garment", "clothes", "home-cleaning"],
+      "competitor_stores": [
+        { "name": "SteamFresh", "monthly_traffic": 2200000, "monthly_sales": 18800000 },
+        { "name": "WrinkleFree", "monthly_traffic": 1200000, "monthly_sales": 10200000 }
+      ]
+    },
+    {
+      "id": "prod_021",
+      "name": "Car Seat Gap Filler & Organizer (2-Pack)",
+      "price": 14.99,
+      "sale_price": 9.99,
+      "category": "Automotive",
+      "description": "Silicone car seat gap fillers that bridge the space between car seat and center console. Prevents phones, keys, snacks, and cards from falling into the abyss. Universal fit for all vehicles. Easy install with no tools required.",
+      "supplier_price": 1.8,
+      "rating": 4.5,
+      "reviews": 28900,
+      "image": "https://placehold.co/400x400/2D3436/white?text=Gap+Filler",
+      "tags": ["automotive", "car", "organizer", "seat-gap", "accessories", "car-detailing", "car-care"],
+      "competitor_stores": [
+        { "name": "AutoOrganize", "monthly_traffic": 3800000, "monthly_sales": 32500000 },
+        { "name": "CarCare Pro", "monthly_traffic": 2200000, "monthly_sales": 18500000 },
+        { "name": "DriveClean", "monthly_traffic": 1100000, "monthly_sales": 9200000 }
+      ]
+    },
+    {
+      "id": "prod_022",
+      "name": "Handheld Portable Car Vacuum Cleaner 8000Pa",
+      "price": 44.99,
+      "sale_price": 29.99,
+      "category": "Automotive",
+      "description": "Powerful handheld car vacuum with 8000Pa cyclone suction, HEPA filter, and dual LED lights. Rechargeable lithium battery provides 30 minutes of runtime. Includes crevice tool, brush nozzle, and blow function. Wet/dry capable.",
+      "supplier_price": 7.2,
+      "rating": 4.6,
+      "reviews": 15800,
+      "image": "https://placehold.co/400x400/0984E3/white?text=Car+Vacuum",
+      "tags": ["automotive", "car", "vacuum", "portable", "cleaning", "car-detailing", "car-care"],
+      "competitor_stores": [
+        { "name": "AutoVac", "monthly_traffic": 3400000, "monthly_sales": 29000000 },
+        { "name": "DetailPro", "monthly_traffic": 1900000, "monthly_sales": 16200000 },
+        { "name": "CarCleaner", "monthly_traffic": 960000, "monthly_sales": 8100000 }
+      ]
+    },
+    {
+      "id": "prod_023",
+      "name": "Car Interior LED Ambient Strip Lights - App Controlled",
+      "price": 24.99,
+      "sale_price": 16.99,
+      "category": "Automotive",
+      "description": "RGB LED strip lights for car interior with smartphone app control. 16 million colors, music sync mode, and 6 dynamic scenes. Easy plug-and-play installation via USB or 12V port. Self-adhesive backing for dashboard, footwells, and doors.",
+      "supplier_price": 3.5,
+      "rating": 4.4,
+      "reviews": 22100,
+      "image": "https://placehold.co/400x400/6C5CE7/white?text=LED+Car+Lights",
+      "tags": ["automotive", "car", "led", "interior", "lighting", "car-detailing", "accessories"],
+      "competitor_stores": [
+        { "name": "LightMyRide", "monthly_traffic": 2900000, "monthly_sales": 24800000 },
+        { "name": "GlowAuto", "monthly_traffic": 1700000, "monthly_sales": 14500000 }
+      ]
+    },
+    {
+      "id": "prod_024",
+      "name": "Car Scratch & Swirl Remover Pen Kit",
+      "price": 16.99,
+      "sale_price": 11.99,
+      "category": "Automotive",
+      "description": "DIY car scratch repair pen with clear coat formula. Fills scratches, swirl marks, and chips on any car paint color. Includes polishing cloth and sanding pad. Water-resistant and UV-protective finish. Works in 3 easy steps.",
+      "supplier_price": 2.1,
+      "rating": 4.2,
+      "reviews": 18700,
+      "image": "https://placehold.co/400x400/E17055/white?text=Scratch+Pen",
+      "tags": ["automotive", "car", "scratch", "repair", "paint", "car-detailing", "car-care"],
+      "competitor_stores": [
+        { "name": "PaintFix", "monthly_traffic": 2500000, "monthly_sales": 21000000 },
+        { "name": "DetailKit", "monthly_traffic": 1300000, "monthly_sales": 11000000 },
+        { "name": "ShineRestore", "monthly_traffic": 680000, "monthly_sales": 5700000 }
+      ]
+    },
+    {
+      "id": "prod_025",
+      "name": "Long-Lasting Car Air Freshener Vent Clip (6-Pack)",
+      "price": 12.99,
+      "sale_price": 8.99,
+      "category": "Automotive",
+      "description": "Premium car vent air freshener clips with natural essential oils. Each clip lasts 45+ days. Variety pack includes Fresh Linen, Ocean Breeze, Black Ice, Vanilla, Citrus, and Lavender. Adjustable intensity dial. Fits all standard AC vents.",
+      "supplier_price": 1.5,
+      "rating": 4.3,
+      "reviews": 34600,
+      "image": "https://placehold.co/400x400/00B894/white?text=Air+Freshener",
+      "tags": ["automotive", "car", "air-freshener", "vent-clip", "accessories", "car-detailing"],
+      "competitor_stores": [
+        { "name": "FreshRide", "monthly_traffic": 3200000, "monthly_sales": 27500000 },
+        { "name": "ScentPro", "monthly_traffic": 1800000, "monthly_sales": 15200000 }
+      ]
+    },
+    {
+      "id": "prod_026",
+      "name": "Universal Car Phone Holder - Dashboard Mount",
+      "price": 19.99,
+      "sale_price": 13.99,
+      "category": "Automotive",
+      "description": "Universal car phone mount with powerful suction cup and 360-degree rotating arm. Fits all phones up to 6.9 inches including iPhone 16 Pro Max and Samsung Galaxy S25 Ultra. One-touch clamping with silicone padding. Heat-resistant for all climates.",
+      "supplier_price": 2.8,
+      "rating": 4.5,
+      "reviews": 45600,
+      "image": "https://placehold.co/400x400/2D3436/white?text=Phone+Holder",
+      "tags": ["automotive", "car", "phone-holder", "mount", "dashboard", "accessories", "car-detailing"],
+      "competitor_stores": [
+        { "name": "MountPro", "monthly_traffic": 4100000, "monthly_sales": 35500000 },
+        { "name": "PhoneGrip", "monthly_traffic": 2400000, "monthly_sales": 20500000 },
+        { "name": "DashMount", "monthly_traffic": 1200000, "monthly_sales": 10200000 }
+      ]
+    },
+    {
+      "id": "prod_027",
+      "name": "Collapsible Car Trunk Organizer with Cooler Compartment",
+      "price": 34.99,
+      "sale_price": 24.99,
+      "category": "Automotive",
+      "description": "Heavy-duty collapsible trunk organizer with insulated cooler compartment for groceries and drinks. 200lb capacity, waterproof interior lining, and adjustable dividers. Non-slip bottom keeps it in place. Folds flat when not in use. Reflective strips for safety.",
+      "supplier_price": 5.8,
+      "rating": 4.7,
+      "reviews": 12400,
+      "image": "https://placehold.co/400x400/00CEC9/white?text=Trunk+Organizer",
+      "tags": ["automotive", "car", "trunk", "organizer", "storage", "car-detailing", "car-care"],
+      "competitor_stores": [
+        { "name": "TrunkSpace", "monthly_traffic": 2700000, "monthly_sales": 23000000 },
+        { "name": "CarGo", "monthly_traffic": 1500000, "monthly_sales": 12800000 },
+        { "name": "StoragePro", "monthly_traffic": 780000, "monthly_sales": 6500000 }
+      ]
+    },
+    {
+      "id": "prod_028",
+      "name": "Waterproof Car Seat Cover Set - Heavy Duty (2-Pack)",
+      "price": 39.99,
+      "sale_price": 27.99,
+      "category": "Automotive",
+      "description": "Universal-fit waterproof car seat covers with 5-layer protection. Blocks spills, pet hair, mud, and UV rays. Front bucket seat pair with separate headrest covers. Easy 5-minute installation with elastic straps and anchor clips. Machine washable.",
+      "supplier_price": 6.5,
+      "rating": 4.4,
+      "reviews": 19800,
+      "image": "https://placehold.co/400x400/D63031/white?text=Seat+Covers",
+      "tags": ["automotive", "car", "seat-covers", "waterproof", "protection", "car-detailing", "car-care"],
+      "competitor_stores": [
+        { "name": "SeatShield", "monthly_traffic": 2300000, "monthly_sales": 19500000 },
+        { "name": "CoverKing", "monthly_traffic": 1200000, "monthly_sales": 10200000 }
+      ]
     }
   ],
   "store_templates": [

@@ -9,7 +9,7 @@ DATA_PATH = Path("data/sample_data.json")
 CATEGORIES = [
     "Beauty & Makeup", "Health & Wellness", "Weight Loss",
     "Skincare", "Home & Kitchen", "Fashion", "Fitness",
-    "Pet Supplies", "Baby & Kids", "Electronics", "Automotive",
+    "Pet Supplies", "Baby & Kids", "Electronics", "Automotive", "Home Cleaning",
 ]
 
 
@@ -23,16 +23,23 @@ def search(category: str = None, max_price: float = 100, min_rating: float = 0) 
     keyword = category.strip().lower() if category else ""
     for p in data["products"]:
         if keyword:
+            keywords = keyword.split()
             match = False
-            if keyword in p["category"].lower():
-                match = True
-            if keyword in p["name"].lower():
-                match = True
-            if keyword in p["description"].lower():
-                match = True
-            for tag in p.get("tags", []):
-                if keyword in tag.lower():
+            for kw in keywords:
+                if kw in p["category"].lower():
                     match = True
+                    break
+                if kw in p["name"].lower():
+                    match = True
+                    break
+                if kw in p["description"].lower():
+                    match = True
+                    break
+                for tag in p.get("tags", []):
+                    if kw in tag.lower():
+                        match = True
+                        break
+                if match:
                     break
             if not match:
                 continue
