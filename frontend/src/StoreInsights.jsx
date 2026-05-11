@@ -12,7 +12,7 @@ export default function StoreInsights() {
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/api/api/health`, { cache: "no-store" });
+      const r = await fetch(`${API}/api/health`, { cache: "no-store" });
       const d = await r.json();
       // Use the same mock metrics since live store isn't connected
     } catch {}
@@ -65,19 +65,19 @@ export default function StoreInsights() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-2xl p-4 bg-white shadow-sm">
               <div className="text-xs text-[#6B6B6B]">Est. Revenue</div>
-              <div className="text-lg font-bold text-[#111111]">${forecast.est_revenue}</div>
+              <div className="text-lg font-bold text-[#111111]">${forecast.estimated_revenue}</div>
             </div>
             <div className="rounded-2xl p-4 bg-white shadow-sm">
               <div className="text-xs text-[#6B6B6B]">Est. Orders</div>
-              <div className="text-lg font-bold text-[#111111]">{forecast.est_orders}</div>
+              <div className="text-lg font-bold text-[#111111]">{forecast.estimated_purchases}</div>
             </div>
             <div className="rounded-2xl p-4 bg-white shadow-sm">
               <div className="text-xs text-[#6B6B6B]">ROAS</div>
-              <div className="text-lg font-bold text-[#111111]">{forecast.roas}x</div>
+              <div className="text-lg font-bold text-[#111111]">{forecast.estimated_roas}x</div>
             </div>
             <div className="rounded-2xl p-4 bg-white shadow-sm">
-              <div className="text-xs text-[#6B6B6B]">Profit Margin</div>
-              <div className="text-lg font-bold text-[#111111]">{forecast.profit_margin}%</div>
+              <div className="text-xs text-[#6B6B6B]">Est. Clicks</div>
+              <div className="text-lg font-bold text-[#111111]">{forecast.estimated_clicks}</div>
             </div>
           </div>
         )}
