@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star } from "lucide-react";
+import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, ExternalLink } from "lucide-react";
+import AnalysisDetail from "./components/AnalysisDetail";
 
 const API = "https://niklinx-engine-v2.onrender.com";
 
@@ -8,10 +9,12 @@ export default function ProductResearch() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(null);
+  const [analyzedProduct, setAnalyzedProduct] = useState(null);
 
   const doSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
+    setAnalyzedProduct(null);
     try {
       const r = await fetch(`${API}/api/research/search`, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -30,10 +33,14 @@ export default function ProductResearch() {
         body: JSON.stringify({ product_id: productId }),
       });
       const data = await r.json();
-      setResults((prev) => prev ? { ...prev, analyzed: data } : prev);
+      setAnalyzedProduct(data);
     } catch {}
     setAnalyzing(null);
   };
+
+  if (analyzedProduct) {
+    return <AnalysisDetail data={analyzedProduct} onBack={() => setAnalyzedProduct(null)} />;
+  }
 
   return (
     <div className="space-y-8">
@@ -94,12 +101,6 @@ export default function ProductResearch() {
               </div>
             ))}
           </div>
-          {results.analyzed && (
-            <div className="rounded-[24px] p-6 bg-[#F5F5F7] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#111111] mb-3">Analysis</h3>
-              <pre className="text-sm text-[#6B6B6B] whitespace-pre-wrap">{JSON.stringify(results.analyzed.analysis, null, 2)}</pre>
-            </div>
-          )}
         </div>
       )}
     </div>
