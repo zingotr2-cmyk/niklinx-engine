@@ -104,15 +104,22 @@ async def ai_search(category: str = None, max_price: float = 100, min_rating: fl
         except Exception:
             pass
 
-    # 2) Fallback to local database
-    products = local_search(category, max_price, min_rating)
-    results["products"] = products
+    # 2) Fallback to local database — return ALL products sorted by relevance
+    keyword_products = local_search(category, max_price, min_rating) if category else []
+    all_products = local_search(None, max_price, min_rating)
+
+    if keyword_products:
+        results["products"] = keyword_products
+    elif all_products:
+        results["products"] = all_products
+    else:
+        results["products"] = keyword_products
 
     ai_active = ai.active_service != "mock"
     results["ai_active"] = ai_active
 
-    if ai_active and products:
-        p = products[0]
+    if ai_active and results["products"]:
+        p = results["products"][0]
         prompt = (
             f"Analyze this dropshipping product in 1 sentence: "
             f"{p['name']} (${p['price']}, rating {p['rating']}/5, {p['reviews']} reviews). "
@@ -120,7 +127,7 @@ async def ai_search(category: str = None, max_price: float = 100, min_rating: fl
         )
         insight = ai.generate(prompt)
         if insight:
-            products[0]["ai_insight"] = insight.strip().strip('"').strip("'")
+            results["products"][0]["ai_insight"] = insight.strip().strip('"').strip("'")
 
     return results
 

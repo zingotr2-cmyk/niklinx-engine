@@ -36,16 +36,20 @@ export default function ProductResearch() {
         body: JSON.stringify({ max_price: 500, category: query }),
       });
       const data = await r.json();
-      if (data.products?.length < 5 && !data.source) {
-        const r2 = await fetch(`${API}/api/search`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, region, max_results: 20 }),
-        });
-        const live = await r2.json();
-        setResults({ products: live.results || [], source: "live", total: live.total, health: live.health });
-      } else {
-        setResults(data);
+      if (data.products?.length < 5) {
+        try {
+          const r2 = await fetch(`${API}/api/search`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query, region, max_results: 20 }),
+          });
+          const live = await r2.json();
+          if (live.results?.length > 0) {
+            setResults({ products: live.results, source: "live", total: live.total, health: live.health });
+            return;
+          }
+        } catch {}
       }
+      setResults(data);
     } catch { setResults(null) }
     setLoading(false);
   };
