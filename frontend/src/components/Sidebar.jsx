@@ -24,6 +24,7 @@ const BACKOFF_BASE = 1000;
 
 export default function Sidebar({ activeView, onNavigate }) {
   const [status, setStatus] = useState("yellow");
+  const [searchEngine, setSearchEngine] = useState("yellow");
   const [searchProviders, setSearchProviders] = useState({});
   const [consecutiveFails, setConsecutiveFails] = useState(0);
   const [retryCountdown, setRetryCountdown] = useState(null);
@@ -45,8 +46,8 @@ export default function Sidebar({ activeView, onNavigate }) {
         setConsecutiveFails(0);
         setRetryCountdown(null);
         if (d.status === "healthy") {
-          const se = d.search_engine || "yellow";
-          setStatus(se === "green" ? "green" : se === "red" ? "red" : "yellow");
+          setStatus("green");
+          setSearchEngine(d.search_engine || "yellow");
           setSearchProviders(d.search_providers || {});
         } else {
           setStatus("yellow");
@@ -154,15 +155,15 @@ export default function Sidebar({ activeView, onNavigate }) {
           )}
         </div>
         <div className="rounded-2xl p-3 bg-[#F5F5F7] flex items-center gap-2">
-          <Globe size={12} className={`${reconnecting ? "animate-spin" : ""} text-[#6B6B6B]`} />
+          <Globe size={12} className="text-[#6B6B6B]" />
           <span className="text-[10px] text-[#6B6B6B]">
             Global Search:{" "}
             <span className={
-              status === "green" ? "text-green-600" :
+              searchEngine === "green" ? "text-green-600" :
               reconnecting ? "text-yellow-500 animate-pulse" :
-              status === "yellow" ? "text-yellow-600" : "text-red-500"
+              searchEngine === "yellow" ? "text-yellow-600" : "text-red-500"
             }>
-              {status === "green" ? "Active" : reconnecting ? "Reconnecting..." : status === "yellow" ? "Partial" : "Offline"}
+              {searchEngine === "green" ? "Active" : reconnecting ? "Reconnecting..." : searchEngine === "yellow" ? "Partial" : "Offline"}
             </span>
           </span>
         </div>

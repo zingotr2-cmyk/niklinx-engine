@@ -302,29 +302,13 @@ def root():
 def health():
     mark_activity()
     search_health = get_search_health()
-    gs_status = search_health["status"]
-
-    # Also check live_search module independently
-    ls_works = False
-    try:
-        from app.modules.live_search import live_search as ls_test
-        test = ls_test("headphones", max_results=3)
-        ls_works = bool(test)
-    except Exception:
-        pass
-
-    combined_status = gs_status
-    if gs_status == "red" and ls_works:
-        combined_status = "yellow"
-
     return {
         "status": "healthy",
         "ai_service": config.active_ai_service,
         "licensed": license_manager.is_licensed(),
         "modules": ["research", "store", "copywriting", "images", "ads", "campaign"],
-        "search_engine": combined_status,
+        "search_engine": search_health["status"],
         "search_providers": search_health["providers"],
-        "live_search_operational": ls_works,
         "keep_alive": keep_alive.running,
     }
 
