@@ -12,8 +12,15 @@ const FALLBACK = {
 };
 
 function fetchHealth() {
-  return fetch(`${API}/api/health`, { cache: "no-store" })
-    .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  return fetch(`${API}/api/health`, { cache: "no-store", signal: controller.signal })
+    .then((r) => {
+      clearTimeout(timeoutId);
+      if (!r.ok) throw new Error();
+      return r.json();
+    })
     .then((d) => ({
       status: d.status || "unknown", ai_service: d.ai_service || "unknown", licensed: d.licensed || false,
       modules: d.modules || [],
@@ -36,7 +43,11 @@ export default function Overview({ onNavigate }) {
 
   const load = useCallback(() => fetchHealth().then(setHealth), []);
 
-  useEffect(() => { load(); const id = setInterval(load, 15000); return () => clearInterval(id); }, [load]);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 15000);
+    return () => clearInterval(id);
+  }, [load]);
 
   const live = health.status === "healthy" && health.ai_service === "production";
   const searchStatus = health.search_engine;

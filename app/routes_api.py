@@ -4,6 +4,7 @@ DRO API Routes — FastAPI application with all endpoints.
 
 import sys
 import os
+from contextlib import asynccontextmanager
 # Ensure project root is in path for gunicorn/uvicorn production
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -20,15 +21,23 @@ from config import config
 from app.modules import product_research, store_analyzer, copywriter, image_generator, ad_creator, campaign_manager
 from app.modules.live_search import live_search, get_cached
 from app.services.scraper_service import scraper
-from app.services.global_search_service import search_global, get_search_health
+from app.services.global_search_service import search_global, get_search_health, reset_providers, validate_connections
+from app.services.keep_alive_service import keep_alive, mark_activity
 
 # ==================== FastAPI App ====================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    keep_alive.start()
+    yield
+    keep_alive.stop()
 
 app = FastAPI(
     title="DRO — Agentic Commerce Engine",
     description="Enterprise dropshipping automation system powered by AI",
     version="2.0.0",
     docs_url="/docs",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -264,6 +273,13 @@ def launch_abtest():
 
 # ==================== Scraper API ====================
 
+@app.post("/api/search/reset")
+def search_reset():
+    """Force-reset all search provider connections — clears stale sessions."""
+    reset_providers()
+    validation = validate_connections()
+    return {"status": "reset", "connections": validation}
+
 @app.post("/api/settings/scrape")
 def settings_scrape(request: ScrapeRequest):
     result = scraper.analyze(request.url)
@@ -284,6 +300,7 @@ def root():
 
 @app.get("/api/health")
 def health():
+    mark_activity()
     search_health = get_search_health()
     return {
         "status": "healthy",
@@ -292,6 +309,7 @@ def health():
         "modules": ["research", "store", "copywriting", "images", "ads", "campaign"],
         "search_engine": search_health["status"],
         "search_providers": search_health["providers"],
+        "keep_alive": keep_alive.running,
     }
 
 # ==================== Dashboard SPA ====================

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { LayoutDashboard, Search, Image, ShoppingCart, BarChart3, Settings, LogOut, Globe } from "lucide-react";
 
 const API = "https://niklinx-engine-v2.onrender.com/api/health";
@@ -14,37 +14,67 @@ const NAV = [
 
 const STATUS_MAP = {
   green: { label: "All Systems Go", ping: true, dot: "bg-green-500", pingColor: "bg-green-400" },
-  yellow: { label: "Partial Connectivity", ping: false, dot: "bg-yellow-400", pingColor: "" },
-  red: { label: "Reconnecting...", ping: false, dot: "bg-red-400", pingColor: "" },
+  yellow: { label: "Reconnecting...", ping: true, dot: "bg-yellow-400", pingColor: "bg-yellow-300" },
+  red: { label: "Disconnected", ping: false, dot: "bg-red-400", pingColor: "" },
 };
+
+const INITIAL_INTERVAL = 15000;
+const MAX_INTERVAL = 30000;
+const BACKOFF_BASE = 1000;
 
 export default function Sidebar({ activeView, onNavigate }) {
   const [status, setStatus] = useState("yellow");
   const [searchProviders, setSearchProviders] = useState({});
+  const [consecutiveFails, setConsecutiveFails] = useState(0);
+  const [retryCountdown, setRetryCountdown] = useState(null);
+  const intervalRef = useRef(null);
+  const timerRef = useRef(null);
 
   const poll = useCallback(() => {
-    fetch(API, { cache: "no-store" })
-      .then((r) => r.json())
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    fetch(API, { cache: "no-store", signal: controller.signal })
+      .then((r) => {
+        clearTimeout(timeoutId);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => {
+        clearTimeout(timeoutId);
+        setConsecutiveFails(0);
+        setRetryCountdown(null);
         if (d.status === "healthy") {
           const se = d.search_engine || "yellow";
-          setStatus(se);
+          setStatus(se === "green" ? "green" : se === "red" ? "red" : "yellow");
           setSearchProviders(d.search_providers || {});
         } else {
           setStatus("yellow");
         }
       })
-      .catch(() => setStatus("red"));
+      .catch(() => {
+        setConsecutiveFails((prev) => {
+          const next = prev + 1;
+          const delay = Math.min(BACKOFF_BASE * Math.pow(2, next), MAX_INTERVAL);
+          setRetryCountdown(Math.ceil(delay / 1000));
+          return next;
+        });
+        setStatus("yellow");
+      });
   }, []);
 
   useEffect(() => {
     poll();
-    const id = setInterval(poll, 15000);
-    return () => clearInterval(id);
+    intervalRef.current = setInterval(poll, INITIAL_INTERVAL);
+    return () => {
+      clearInterval(intervalRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [poll]);
 
   const s = STATUS_MAP[status] || STATUS_MAP.yellow;
   const providerNames = Object.keys(searchProviders);
+  const reconnecting = status === "yellow" && consecutiveFails > 0;
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 flex flex-col z-50 backdrop-blur-xl bg-white/70 border-r border-white/20 shadow-sm">
@@ -86,12 +116,29 @@ export default function Sidebar({ activeView, onNavigate }) {
           <div className="text-xs font-medium text-[#6B6B6B] mb-1">System Status</div>
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              {s.ping && <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${s.pingColor} opacity-75`} />}
+              {s.ping && (
+                <span
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full ${s.pingColor} opacity-75`}
+                  style={{ animationDuration: reconnecting ? "0.8s" : "1.5s" }}
+                />
+              )}
               <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${s.dot}`} />
             </span>
             <span className="text-sm font-medium text-[#111111]">{s.label}</span>
+            {reconnecting && retryCountdown !== null && (
+              <span className="text-[10px] text-[#6B6B6B] ml-auto animate-pulse">
+                retry in {retryCountdown}s
+              </span>
+            )}
           </div>
-          {providerNames.length > 0 && (
+          {reconnecting && (
+            <p className="text-[10px] text-yellow-600 mt-1.5 animate-pulse">
+              {consecutiveFails <= 2
+                ? "Backend waking up..."
+                : "Connection interrupted — auto-recovering..."}
+            </p>
+          )}
+          {providerNames.length > 0 && !reconnecting && (
             <div className="mt-2 flex flex-wrap gap-1">
               {providerNames.map((name) => {
                 const h = searchProviders[name];
@@ -107,8 +154,17 @@ export default function Sidebar({ activeView, onNavigate }) {
           )}
         </div>
         <div className="rounded-2xl p-3 bg-[#F5F5F7] flex items-center gap-2">
-          <Globe size={12} className="text-[#6B6B6B]" />
-          <span className="text-[10px] text-[#6B6B6B]">Global Search: <span className={status === "green" ? "text-green-600" : status === "yellow" ? "text-yellow-600" : "text-red-500"}>{status === "green" ? "Active" : status === "yellow" ? "Partial" : "Offline"}</span></span>
+          <Globe size={12} className={`${reconnecting ? "animate-spin" : ""} text-[#6B6B6B]`} />
+          <span className="text-[10px] text-[#6B6B6B]">
+            Global Search:{" "}
+            <span className={
+              status === "green" ? "text-green-600" :
+              reconnecting ? "text-yellow-500 animate-pulse" :
+              status === "yellow" ? "text-yellow-600" : "text-red-500"
+            }>
+              {status === "green" ? "Active" : reconnecting ? "Reconnecting..." : status === "yellow" ? "Partial" : "Offline"}
+            </span>
+          </span>
         </div>
       </div>
     </aside>

@@ -380,17 +380,45 @@ class GoogleShoppingProvider(BaseProvider):
 
 # ==================== Provider Registry ====================
 
-PROVIDERS = {
-    "amazon": AmazonProvider(),
-    "aliexpress": AliExpressProvider(),
-    "google_shopping": GoogleShoppingProvider(),
-}
+def _create_providers() -> dict:
+    return {
+        "amazon": AmazonProvider(),
+        "aliexpress": AliExpressProvider(),
+        "google_shopping": GoogleShoppingProvider(),
+    }
+
+PROVIDERS = _create_providers()
+
+
+def reset_providers():
+    """Destroy and recreate all provider instances — clears stale connections."""
+    global PROVIDERS
+    for name, p in PROVIDERS.items():
+        try:
+            if hasattr(p, '_client') and p._client:
+                p._client.close()
+        except Exception:
+            pass
+    PROVIDERS = _create_providers()
+
+
+def validate_connections() -> dict:
+    """Quick-connect test for each provider — returns per-provider connectivity."""
+    results = {}
+    for name, provider in PROVIDERS.items():
+        try:
+            test_url = provider.build_url("test", "usa")
+            resp = provider._client.get(test_url, timeout=8.0)
+            results[name] = resp.status_code == 200
+        except Exception:
+            results[name] = False
+    return results
 
 
 # ==================== Cache Layer ====================
 
 def _cache_key(query: str, region: str) -> str:
-    return hashlib.md5(f"{query.lower().strip()}|{region}".encode()).hexdigest()
+    return hashlib.sha3_256(f"{query.lower().strip()}|{region}".encode()).hexdigest()[:32]
 
 
 def _load_cache() -> dict:
@@ -430,12 +458,26 @@ def set_cached(query: str, region: str, results: list):
 def search_global(query: str, region: str = "usa", max_results: int = 20) -> dict:
     """
     Primary search entry point.
-    1) Check cache
-    2) Query all providers concurrently
-    3) Normalize, deduplicate, score
-    4) Cache results
-    5) Return normalized response
+    1) Auto-heal unhealthy providers
+    2) Check cache
+    3) Query all providers concurrently
+    4) Normalize, deduplicate, score
+    5) Cache results
+    6) Return normalized response
     """
+    # Auto-reconnect unhealthy providers
+    health_summary = provider_health.summary()
+    if health_summary["status"] != "green":
+        for name, status in health_summary["providers"].items():
+            if not status.get("healthy", False):
+                if name in PROVIDERS:
+                    try:
+                        if hasattr(PROVIDERS[name], '_client') and PROVIDERS[name]._client:
+                            PROVIDERS[name]._client.close()
+                        PROVIDERS[name] = _create_providers()[name]
+                    except Exception:
+                        pass
+
     cached = get_cached(query, region)
     if cached is not None:
         return {
