@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, DollarSign, Users, ShoppingCart, Star, ExternalLink, Zap, MessageCircle, Hash, Music, Activity } from "lucide-react";
+import { TrendingUp, DollarSign, Users, ShoppingCart, Star, ExternalLink, Zap, MessageCircle, Hash, Music, Activity, ArrowLeft } from "lucide-react";
 import ProgressRing from "./ProgressRing";
 
 const API = "https://niklinx-engine-v2.onrender.com";
@@ -49,7 +49,7 @@ export default function AnalysisDetail({ data, product, onBack }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <button onClick={onBack} className="text-sm text-[#6B6B6B] hover:text-[#111111] transition-colors">&larr; Back to results</button>
+        <button onClick={onBack} className="text-sm text-[#6B6B6B] hover:text-[#111111] transition-colors inline-flex items-center gap-1.5"><ArrowLeft size={14} /> Back to results</button>
       </div>
 
       <div className="rounded-[24px] p-6 bg-[#F5F5F7] shadow-sm">

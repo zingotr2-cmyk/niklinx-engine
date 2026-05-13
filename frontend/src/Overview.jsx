@@ -69,12 +69,13 @@ export default function Overview({ onNavigate }) {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-[#111111] tracking-tight">Dashboard</h1>
-          <p className="text-[#6B6B6B] mt-1">{date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
+          <h1 className="text-3xl font-semibold text-[#111111] tracking-tight">Empower Your Brand with Autonomous AI Intelligence.</h1>
+          <p className="text-[#6B6B6B] mt-2 max-w-xl">Discover, analyze, and launch winning products using real-time AI-powered market intelligence across global markets.</p>
+          <p className="text-xs text-[#6B6B6B] mt-1.5">{date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#F5F5F7]">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#F5F5F7] shrink-0">
           <span className="relative flex h-2.5 w-2.5">
             {live && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />}
             <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${live ? "bg-green-500" : "bg-yellow-400"}`} />
@@ -87,7 +88,7 @@ export default function Overview({ onNavigate }) {
         <Search size={18} className="text-[#6B6B6B]" />
         <input
           type="text"
-          placeholder="Search products by category (e.g., Beauty, Electronics)..."
+          placeholder="Search any product category across global markets..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && doSearch()}

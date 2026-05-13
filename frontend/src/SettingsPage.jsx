@@ -35,7 +35,7 @@ export default function SettingsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold text-[#111111] tracking-tight">Settings</h1>
-        <p className="text-[#6B6B6B] mt-1">System configuration and diagnostics</p>
+        <p className="text-[#6B6B6B] mt-1">System configuration, API keys, and infrastructure diagnostics.</p>
       </div>
 
       {status && (

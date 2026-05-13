@@ -170,14 +170,14 @@ export default function ProductResearch() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold text-[#111111] tracking-tight">Product Research</h1>
-        <p className="text-[#6B6B6B] mt-1">Live multi-country social commerce intelligence</p>
+        <p className="text-[#6B6B6B] mt-1">Discover trending products across 9 global markets with real-time social proof intelligence.</p>
       </div>
 
       <div className="rounded-[24px] p-4 bg-[#F5F5F7] shadow-sm space-y-3">
         <div className="flex items-center gap-3">
           <Search size={18} className="text-[#6B6B6B]" />
           <input
-            type="text" placeholder="Search products across global markets..."
+            type="text" placeholder="Search any product, trend, or category across 9 global markets..."
             value={query} onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && doSearch()}
             className="flex-1 bg-transparent border-none outline-none text-sm text-[#111111] placeholder:text-[#6B6B6B]"
@@ -255,9 +255,9 @@ export default function ProductResearch() {
           </div>
           <div className="text-center">
             <p className="text-base font-semibold text-[#111111]">
-              {regionTransition ? `Switching to ${activeRegion?.flag} ${activeRegion?.label}...` : `Scanning ${activeRegion?.label} Markets...`}
+              {regionTransition ? `Switching to ${activeRegion?.flag} ${activeRegion?.label}...` : `Analyzing ${activeRegion?.label} Markets...`}
             </p>
-            <p className="text-xs text-[#6B6B6B] mt-1.5">Searching region-specific providers for best results</p>
+            <p className="text-xs text-[#6B6B6B] mt-1.5">Aggregating marketplace data, social signals, and trend intelligence</p>
           </div>
         </div>
       )}

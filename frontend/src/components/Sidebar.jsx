@@ -13,9 +13,9 @@ const NAV = [
 ];
 
 const STATUS_MAP = {
-  green: { label: "All Systems Go", ping: true, dot: "bg-green-500", pingColor: "bg-green-400" },
+  green: { label: "All Systems Operational", ping: true, dot: "bg-green-500", pingColor: "bg-green-400" },
   yellow: { label: "Reconnecting...", ping: true, dot: "bg-yellow-400", pingColor: "bg-yellow-300" },
-  red: { label: "Disconnected", ping: false, dot: "bg-red-400", pingColor: "" },
+  red: { label: "Connection Lost", ping: false, dot: "bg-red-400", pingColor: "" },
 };
 
 const INITIAL_INTERVAL = 15000;
@@ -108,7 +108,7 @@ export default function Sidebar({ activeView, onNavigate }) {
       <div className="px-3 pb-6">
         <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-[#6B6B6B] hover:text-[#111111] hover:bg-[#F5F5F7] transition-all duration-200">
           <LogOut size={18} strokeWidth={1.5} />
-          Sign Out
+          Sign out
         </button>
       </div>
 

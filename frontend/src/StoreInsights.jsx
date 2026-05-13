@@ -34,7 +34,7 @@ export default function StoreInsights() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold text-[#111111] tracking-tight">Store Insights</h1>
-        <p className="text-[#6B6B6B] mt-1">Analytics and performance metrics</p>
+        <p className="text-[#6B6B6B] mt-1">Real-time store analytics, revenue tracking, and campaign forecasting.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
