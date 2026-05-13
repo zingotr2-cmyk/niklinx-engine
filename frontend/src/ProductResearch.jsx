@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, Globe, Database, ExternalLink, MapPin, Users, MessageCircle, Zap, Music } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, Globe, Database, ExternalLink, MapPin, Music, Zap } from "lucide-react";
 import AnalysisDetail from "./components/AnalysisDetail";
 
 const API = "https://niklinx-engine-v2.onrender.com";
@@ -54,49 +54,16 @@ export default function ProductResearch() {
   const [showRegionPicker, setShowRegionPicker] = useState(false);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(false);
   const [socialScores, setSocialScores] = useState({});
   const [analyzing, setAnalyzing] = useState(null);
   const [analyzedProduct, setAnalyzedProduct] = useState(null);
+  const [regionTransition, setRegionTransition] = useState(false);
+  const pendingQuery = useRef("");
 
   const activeRegion = FLAT_REGIONS.find((r) => r.value === region);
 
-  const doSearch = async () => {
-    if (!query.trim()) return;
-    setLoading(true);
-    setAnalyzedProduct(null);
-    setResults(null);
-    setSocialScores({});
-    try {
-      const r = await fetch(`${API}/api/research/search`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ max_price: 500, category: query }),
-      });
-      const data = await r.json();
-      if (data.products?.length < 5) {
-        try {
-          const r2 = await fetch(`${API}/api/search`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query, region, max_results: 20 }),
-          });
-          const live = await r2.json();
-          if (live.results?.length > 0) {
-            setResults({ products: live.results, source: "live", total: live.total, health: live.health });
-            setLoading(false);
-            fetchSocialScores(query, live.results || []);
-            return;
-          }
-        } catch {}
-      }
-      setResults(data);
-      setLoading(false);
-      fetchSocialScores(query, data.products || []);
-    } catch { setResults(null); setLoading(false) }
-  };
-
-  const fetchSocialScores = async (q, products) => {
+  const fetchSocialScores = useCallback(async (q, products) => {
     if (!products?.length) return;
-    setSocialLoading(true);
     const firstFew = products.slice(0, 6);
     const scores = {};
     await Promise.all(
@@ -121,7 +88,63 @@ export default function ProductResearch() {
       })
     );
     setSocialScores(scores);
-    setSocialLoading(false);
+  }, [region]);
+
+  const doSearch = useCallback(async (searchQuery, searchRegion) => {
+    const q = searchQuery || query;
+    const r = searchRegion || region;
+    if (!q.trim()) return;
+    pendingQuery.current = q;
+    setLoading(true);
+    setAnalyzedProduct(null);
+    setResults(null);
+    setSocialScores({});
+    try {
+      const body = JSON.stringify({ max_price: 500, category: q, region: r });
+      const resp = await fetch(`${API}/api/research/search`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body,
+      });
+      const data = await resp.json();
+      if (data.products?.length < 5) {
+        try {
+          const r2 = await fetch(`${API}/api/search`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: q, region: r, max_results: 20 }),
+          });
+          const live = await r2.json();
+          if (live.results?.length > 0) {
+            setResults({ products: live.results, source: "live", total: live.total, health: live.health, region: r });
+            setLoading(false);
+            fetchSocialScores(q, live.results);
+            return;
+          }
+        } catch {}
+      }
+      setResults({ ...data, region: r });
+      setLoading(false);
+      fetchSocialScores(q, data.products || []);
+    } catch { setResults(null); setLoading(false) }
+  }, [query, region, fetchSocialScores]);
+
+  // Phase 3: Auto-refresh when region changes (if there's an active query)
+  useEffect(() => {
+    if (pendingQuery.current && !loading) {
+      setRegionTransition(true);
+      const timer = setTimeout(() => {
+        doSearch(pendingQuery.current, region);
+        setTimeout(() => setRegionTransition(false), 400);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [region]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRegionChange = (newRegion) => {
+    setRegion(newRegion);
+    setShowRegionPicker(false);
+    if (pendingQuery.current) {
+      setRegionTransition(true);
+    }
   };
 
   const doAnalyze = async (productId) => {
@@ -147,19 +170,19 @@ export default function ProductResearch() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold text-[#111111] tracking-tight">Product Research</h1>
-        <p className="text-[#6B6B6B] mt-1">Global social commerce intelligence — marketplace data + TikTok trends + Facebook ad signals</p>
+        <p className="text-[#6B6B6B] mt-1">Live multi-country social commerce intelligence</p>
       </div>
 
       <div className="rounded-[24px] p-4 bg-[#F5F5F7] shadow-sm space-y-3">
         <div className="flex items-center gap-3">
           <Search size={18} className="text-[#6B6B6B]" />
           <input
-            type="text" placeholder="Search products, trends, or viral categories..."
+            type="text" placeholder="Search products across global markets..."
             value={query} onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && doSearch()}
             className="flex-1 bg-transparent border-none outline-none text-sm text-[#111111] placeholder:text-[#6B6B6B]"
           />
-          <button onClick={doSearch} disabled={loading}
+          <button onClick={() => doSearch()} disabled={loading}
             className="px-4 py-2 rounded-xl bg-[#2563EB] text-white text-sm font-medium hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? <RefreshCw size={14} className="animate-spin" /> : <ArrowRight size={14} />}
@@ -176,14 +199,14 @@ export default function ProductResearch() {
             {activeRegion?.flag} {activeRegion?.label}
           </button>
           {showRegionPicker && (
-            <div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 min-w-[200px]">
+            <div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 min-w-[220px]">
               {REGION_GROUPS.map((group) => (
                 <div key={group.label} className="mb-2 last:mb-0">
                   <div className="text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-wider px-2 mb-1">{group.label}</div>
                   {group.countries.map((c) => (
                     <button
                       key={c.value}
-                      onClick={() => { setRegion(c.value); setShowRegionPicker(false); }}
+                      onClick={() => handleRegionChange(c.value)}
                       className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
                         region === c.value ? "bg-[#2563EB] text-white" : "text-[#111111] hover:bg-[#F5F5F7]"
                       }`}
@@ -195,11 +218,34 @@ export default function ProductResearch() {
               ))}
             </div>
           )}
-          {socialLoading && (
-            <span className="text-[10px] text-[#6B6B6B] animate-pulse ml-auto">Analyzing social signals...</span>
-          )}
         </div>
       </div>
+
+      {/* Phase 4: Dynamic Region Header */}
+      {pendingQuery.current && results && !loading && (
+        <div className={`transition-all duration-300 ${regionTransition ? "opacity-0 translate-y-[-8px]" : "opacity-100 translate-y-0"}`}>
+          <div className="rounded-2xl px-5 py-3 bg-gradient-to-r from-[#F5F5F7] to-white shadow-sm border border-gray-100/50 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">{activeRegion?.flag}</span>
+              <div>
+                <span className="text-sm font-semibold text-[#111111]">Displaying Top Winners in {activeRegion?.label}</span>
+                <p className="text-[11px] text-[#6B6B6B] mt-0.5">{results.products?.length || 0} products • {isLiveSource ? "Live Markets" : "Database"} • {activeRegion?.flag} {(REGION_GROUPS.flatMap(g => g.countries).find(c => c.value === region)?.label || "").toUpperCase()}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {isLiveSource ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex items-center gap-1">
+                  <Globe size={10} /> Live
+                </span>
+              ) : (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium flex items-center gap-1">
+                  <Database size={10} /> Local
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="rounded-[24px] p-10 bg-[#F5F5F7] shadow-sm flex flex-col items-center justify-center gap-5">
@@ -208,47 +254,16 @@ export default function ProductResearch() {
             <Globe size={16} className="text-[#6B6B6B] absolute -top-1 -right-1 animate-pulse" />
           </div>
           <div className="text-center">
-            <p className="text-base font-semibold text-[#111111]">Scanning Markets + Social Trends...</p>
-            <p className="text-xs text-[#6B6B6B] mt-1.5">Searching {activeRegion?.label}, TikTok trends, and Facebook Ad Library</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" /> AliExpress
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" style={{ animationDelay: "0.2s" }} /> Amazon
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: "0.4s" }} /> Shopping
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black text-white text-xs">
-              <Music size={10} /> TikTok
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600 text-white text-xs">
-              f
-            </span>
+            <p className="text-base font-semibold text-[#111111]">
+              {regionTransition ? `Switching to ${activeRegion?.flag} ${activeRegion?.label}...` : `Scanning ${activeRegion?.label} Markets...`}
+            </p>
+            <p className="text-xs text-[#6B6B6B] mt-1.5">Searching region-specific providers for best results</p>
           </div>
         </div>
       )}
 
       {results && !loading && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-[#111111]">{results.products?.length || 0} products found</h3>
-            <div className="flex items-center gap-2">
-              {isLiveSource ? (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                  <Globe size={12} /> Live Markets
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                  <Database size={12} /> Local Database
-                </span>
-              )}
-              <span className="text-xs text-[#6B6B6B]">{activeRegion?.flag} {activeRegion?.label}</span>
-            </div>
-          </div>
-
+        <div className={`space-y-4 transition-all duration-300 ${regionTransition ? "opacity-0" : "opacity-100"}`}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(results.products || []).slice(0, 20).map((p, i) => {
               const title = p.title || p.name || "";
@@ -276,9 +291,7 @@ export default function ProductResearch() {
                             </span>
                           )}
                           {social.facebookAds > 0 && (
-                            <span className="bg-blue-600/80 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                              f {social.facebookAds}
-                            </span>
+                            <span className="bg-blue-600/80 text-white text-[9px] px-1.5 py-0.5 rounded-full">f {social.facebookAds}</span>
                           )}
                         </div>
                       )}
@@ -288,9 +301,7 @@ export default function ProductResearch() {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-[#111111] line-clamp-2">{title}</div>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.color}`}>
-                          {badge.label}
-                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.color}`}>{badge.label}</span>
                         {soc && (
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${soc.color} inline-flex items-center gap-0.5`}>
                             {soc.icon} {soc.label}
@@ -309,11 +320,8 @@ export default function ProductResearch() {
                       <DollarSign size={14} className="text-[#2563EB]" />
                       <span className="text-lg font-bold text-[#111111]">${price}</span>
                     </div>
-                    {social && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {social.tiktokVideos > 0 && <Music size={11} className="text-black" />}
-                        {social.facebookAds > 0 && <span className="text-[10px] text-blue-600 font-bold">f</span>}
-                      </div>
+                    {(p.currency || p.region) && (
+                      <span className="text-[10px] text-[#6B6B6B] font-medium">{p.currency || ""} {p.region ? p.region.toUpperCase() : ""}</span>
                     )}
                   </div>
 
@@ -333,12 +341,8 @@ export default function ProductResearch() {
                     <div className="mt-2 flex items-center gap-2 text-[10px] text-[#6B6B6B] bg-white/50 rounded-xl px-2 py-1.5">
                       <Zap size={10} className={social.score >= 50 ? "text-yellow-500" : "text-gray-400"} />
                       <span className="font-medium">Social Proof: {social.score}</span>
-                      {social.tiktokVideos > 0 && (
-                        <span className="flex items-center gap-0.5"><Music size={9} /> {social.tiktokVideos}</span>
-                      )}
-                      {social.facebookAds > 0 && (
-                        <span className="flex items-center gap-0.5">f {social.facebookAds}</span>
-                      )}
+                      {social.tiktokVideos > 0 && <span className="flex items-center gap-0.5"><Music size={9} /> {social.tiktokVideos}</span>}
+                      {social.facebookAds > 0 && <span className="flex items-center gap-0.5">f {social.facebookAds}</span>}
                     </div>
                   )}
 
@@ -351,12 +355,11 @@ export default function ProductResearch() {
                         Analyze
                       </button>
                     ) : (
-                      <a href={p.product_url || p.source_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`}
+                      <a href={p.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`}
                         target="_blank" rel="noopener noreferrer"
                         className="text-xs px-3 py-1.5 rounded-xl bg-white text-[#111111] hover:bg-gray-50 transition-colors flex items-center gap-1 border border-gray-200"
                       >
-                        <ExternalLink size={12} />
-                        View Source
+                        <ExternalLink size={12} /> View Source
                       </a>
                     )}
                     {p.region && <span className="text-[10px] text-[#6B6B6B]">{p.currency} {p.region.toUpperCase()}</span>}

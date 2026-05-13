@@ -80,6 +80,7 @@ class SearchRequest(BaseModel):
     category: Optional[str] = None
     max_price: float = 100
     min_rating: float = 0
+    region: str = "usa"
 
 class AnalyzeRequest(BaseModel):
     product_id: str
@@ -183,7 +184,7 @@ def save_key(request: KeyRequest):
 
 @app.post("/api/research/search")
 async def research_search(request: SearchRequest):
-    return await product_research.ai_search(request.category, request.max_price, request.min_rating)
+    return await product_research.ai_search(request.category, request.max_price, request.min_rating, region=request.region)
 
 @app.post("/api/research/analyze")
 def research_analyze(request: AnalyzeRequest):

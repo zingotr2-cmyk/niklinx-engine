@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from app.services.ai_service import ai
 from app.modules.live_search import live_search as fetch_live
+from app.services.global_search_service import search_global as global_search
 
 DATA_PATH = Path("data/sample_data.json")
 
@@ -86,11 +87,26 @@ def analyze(product_id: str) -> dict | None:
     }
 
 
-async def ai_search(category: str = None, max_price: float = 100, min_rating: float = 0) -> dict:
-    """Search: live global markets first, local database fallback."""
+async def ai_search(category: str = None, max_price: float = 100, min_rating: float = 0, region: str = "usa") -> dict:
+    """Search: global search (region-aware) first, live_search fallback, local database last."""
     results = {"products": [], "source": "local", "ai_active": False}
 
-    # 1) Try live search from global marketplaces
+    # 1) Use region-aware global search service
+    if category and category.strip():
+        try:
+            gs = global_search(category.strip(), region=region, max_results=25)
+            if gs and gs.get("results"):
+                results["products"] = gs["results"]
+                results["source"] = "live"
+                results["region"] = region
+                for p in gs["results"][:3]:
+                    p["ai_insight"] = _mock_insight(p)
+                results["ai_active"] = True
+                return results
+        except Exception:
+            pass
+
+    # 2) Try legacy live search fallback
     if category and category.strip():
         try:
             live_results = fetch_live(category.strip(), max_results=25)
@@ -104,7 +120,7 @@ async def ai_search(category: str = None, max_price: float = 100, min_rating: fl
         except Exception:
             pass
 
-    # 2) Fallback to local database — return ALL products sorted by relevance
+    # 3) Fallback to local database
     keyword_products = local_search(category, max_price, min_rating) if category else []
     all_products = local_search(None, max_price, min_rating)
 
@@ -112,8 +128,6 @@ async def ai_search(category: str = None, max_price: float = 100, min_rating: fl
         results["products"] = keyword_products
     elif all_products:
         results["products"] = all_products
-    else:
-        results["products"] = keyword_products
 
     ai_active = ai.active_service != "mock"
     results["ai_active"] = ai_active
@@ -134,7 +148,7 @@ async def ai_search(category: str = None, max_price: float = 100, min_rating: fl
 
 def _mock_insight(p: dict) -> str:
     """Generate a brief market insight for a live product without real AI."""
-    score = p.get("winning_score", 50)
+    score = p.get("ai_score", 50)
     margin = p.get("profit_margin", 50)
     rating = p.get("rating", 4.0)
     src = p.get("source", "marketplace").replace("_", " ").title()
