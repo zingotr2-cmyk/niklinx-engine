@@ -35,10 +35,28 @@ HEADERS = {
 
 # Region config: marketplace-specific domain suffixes & currency
 REGIONS = {
-    "usa": {"domains": ["com"], "currency": "USD", "label": "USA"},
-    "europe": {"domains": ["de", "co.uk", "fr", "it", "es"], "currency": "EUR", "label": "Europe"},
-    "gcc": {"domains": ["ae", "sa"], "currency": "AED", "label": "Gulf (GCC)"},
+    "usa": {"domains": ["com"], "currency": "USD", "label": "USA", "country_code": "US"},
+    "canada": {"domains": ["ca"], "currency": "CAD", "label": "Canada", "country_code": "CA"},
+    "uk": {"domains": ["co.uk"], "currency": "GBP", "label": "UK", "country_code": "GB"},
+    "germany": {"domains": ["de"], "currency": "EUR", "label": "Germany", "country_code": "DE"},
+    "france": {"domains": ["fr"], "currency": "EUR", "label": "France", "country_code": "FR"},
+    "uae": {"domains": ["ae"], "currency": "AED", "label": "UAE", "country_code": "AE"},
+    "saudi_arabia": {"domains": ["sa"], "currency": "SAR", "label": "Saudi Arabia", "country_code": "SA"},
+    "algeria": {"domains": ["dz"], "currency": "DZD", "label": "Algeria", "country_code": "DZ"},
 }
+
+# Group mappings for frontend
+COUNTRY_GROUPS = {
+    "gcc": ["uae", "saudi_arabia", "algeria"],
+    "north_america": ["usa", "canada"],
+    "europe": ["uk", "germany", "france"],
+}
+
+def resolve_region(region: str) -> str:
+    """Resolve group names to individual country codes. Returns first country in group."""
+    if region in COUNTRY_GROUPS:
+        return COUNTRY_GROUPS[region][0]
+    return region
 
 
 # ==================== Provider Health Tracker ====================
@@ -456,6 +474,7 @@ def set_cached(query: str, region: str, results: list):
 # ==================== Main Search Orchestrator ====================
 
 def search_global(query: str, region: str = "usa", max_results: int = 20) -> dict:
+    region = resolve_region(region)
     """
     Primary search entry point.
     1) Auto-heal unhealthy providers

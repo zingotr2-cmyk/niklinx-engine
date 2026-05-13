@@ -1,14 +1,36 @@
 import { useState } from "react";
-import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, Globe, Database, ExternalLink, MapPin } from "lucide-react";
+import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, Globe, Database, ExternalLink, MapPin, Users, MessageCircle, Zap, Music } from "lucide-react";
 import AnalysisDetail from "./components/AnalysisDetail";
 
 const API = "https://niklinx-engine-v2.onrender.com";
 
-const REGIONS = [
-  { value: "usa", label: "USA", flag: "🇺🇸" },
-  { value: "europe", label: "Europe", flag: "🇪🇺" },
-  { value: "gcc", label: "Gulf (GCC)", flag: "🇦🇪" },
+const REGION_GROUPS = [
+  {
+    label: "North America",
+    countries: [
+      { value: "usa", label: "USA", flag: "🇺🇸" },
+      { value: "canada", label: "Canada", flag: "🇨🇦" },
+    ],
+  },
+  {
+    label: "Europe",
+    countries: [
+      { value: "uk", label: "UK", flag: "🇬🇧" },
+      { value: "germany", label: "Germany", flag: "🇩🇪" },
+      { value: "france", label: "France", flag: "🇫🇷" },
+    ],
+  },
+  {
+    label: "GCC",
+    countries: [
+      { value: "uae", label: "UAE", flag: "🇦🇪" },
+      { value: "saudi_arabia", label: "Saudi Arabia", flag: "🇸🇦" },
+      { value: "algeria", label: "Algeria", flag: "🇩🇿" },
+    ],
+  },
 ];
+
+const FLAT_REGIONS = REGION_GROUPS.flatMap((g) => g.countries);
 
 const SOURCE_BADGES = {
   aliexpress: { label: "AliExpress", color: "bg-orange-100 text-orange-700" },
@@ -17,19 +39,34 @@ const SOURCE_BADGES = {
   local: { label: "Local DB", color: "bg-gray-100 text-gray-600" },
 };
 
+function getSocialBadge(score) {
+  if (!score) return null;
+  if (score >= 85) return { label: "Viral", icon: "🔥", color: "bg-red-100 text-red-600" };
+  if (score >= 70) return { label: "Trending", icon: "📈", color: "bg-green-100 text-green-700" };
+  if (score >= 50) return { label: "Rising", icon: "⚡", color: "bg-yellow-100 text-yellow-700" };
+  if (score >= 30) return { label: "Emerging", icon: "🌱", color: "bg-blue-100 text-blue-700" };
+  return { label: "Normal", icon: "💤", color: "bg-gray-100 text-gray-500" };
+}
+
 export default function ProductResearch() {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState("usa");
+  const [showRegionPicker, setShowRegionPicker] = useState(false);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(false);
+  const [socialScores, setSocialScores] = useState({});
   const [analyzing, setAnalyzing] = useState(null);
   const [analyzedProduct, setAnalyzedProduct] = useState(null);
+
+  const activeRegion = FLAT_REGIONS.find((r) => r.value === region);
 
   const doSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
     setAnalyzedProduct(null);
     setResults(null);
+    setSocialScores({});
     try {
       const r = await fetch(`${API}/api/research/search`, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -45,13 +82,46 @@ export default function ProductResearch() {
           const live = await r2.json();
           if (live.results?.length > 0) {
             setResults({ products: live.results, source: "live", total: live.total, health: live.health });
+            setLoading(false);
+            fetchSocialScores(query, live.results || []);
             return;
           }
         } catch {}
       }
       setResults(data);
-    } catch { setResults(null) }
-    setLoading(false);
+      setLoading(false);
+      fetchSocialScores(query, data.products || []);
+    } catch { setResults(null); setLoading(false) }
+  };
+
+  const fetchSocialScores = async (q, products) => {
+    if (!products?.length) return;
+    setSocialLoading(true);
+    const firstFew = products.slice(0, 6);
+    const scores = {};
+    await Promise.all(
+      firstFew.map(async (p) => {
+        const searchTerm = p.title || p.name || q;
+        try {
+          const r = await fetch(`${API}/api/social/proof`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: searchTerm, region, max_results: 5 }),
+          });
+          const data = await r.json();
+          const key = p.id || p.title || searchTerm;
+          scores[key] = {
+            score: data.social_proof_score,
+            classification: data.classification,
+            icon: data.icon,
+            label: data.label,
+            tiktokVideos: data.tiktok_summary?.total_videos || 0,
+            facebookAds: data.facebook_summary?.total_ads || 0,
+          };
+        } catch {}
+      })
+    );
+    setSocialScores(scores);
+    setSocialLoading(false);
   };
 
   const doAnalyze = async (productId) => {
@@ -77,14 +147,14 @@ export default function ProductResearch() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold text-[#111111] tracking-tight">Product Research</h1>
-        <p className="text-[#6B6B6B] mt-1">Live global product discovery across Amazon, AliExpress, and Google Shopping</p>
+        <p className="text-[#6B6B6B] mt-1">Global social commerce intelligence — marketplace data + TikTok trends + Facebook ad signals</p>
       </div>
 
       <div className="rounded-[24px] p-4 bg-[#F5F5F7] shadow-sm space-y-3">
         <div className="flex items-center gap-3">
           <Search size={18} className="text-[#6B6B6B]" />
           <input
-            type="text" placeholder="Scan global markets for winning products..."
+            type="text" placeholder="Search products, trends, or viral categories..."
             value={query} onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && doSearch()}
             className="flex-1 bg-transparent border-none outline-none text-sm text-[#111111] placeholder:text-[#6B6B6B]"
@@ -96,22 +166,38 @@ export default function ProductResearch() {
             Search
           </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
           <MapPin size={14} className="text-[#6B6B6B]" />
-          <span className="text-xs text-[#6B6B6B]">Market:</span>
-          <div className="flex gap-1">
-            {REGIONS.map((r) => (
-              <button key={r.value} onClick={() => setRegion(r.value)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  region === r.value
-                    ? "bg-[#2563EB] text-white"
-                    : "bg-white text-[#6B6B6B] hover:text-[#111111]"
-                }`}
-              >
-                {r.flag} {r.label}
-              </button>
-            ))}
-          </div>
+          <span className="text-xs text-[#6B6B6B]">Target Market:</span>
+          <button
+            onClick={() => setShowRegionPicker(!showRegionPicker)}
+            className="px-3 py-1 rounded-full text-xs font-medium bg-[#2563EB] text-white flex items-center gap-1.5"
+          >
+            {activeRegion?.flag} {activeRegion?.label}
+          </button>
+          {showRegionPicker && (
+            <div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 min-w-[200px]">
+              {REGION_GROUPS.map((group) => (
+                <div key={group.label} className="mb-2 last:mb-0">
+                  <div className="text-[10px] font-semibold text-[#6B6B6B] uppercase tracking-wider px-2 mb-1">{group.label}</div>
+                  {group.countries.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => { setRegion(c.value); setShowRegionPicker(false); }}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
+                        region === c.value ? "bg-[#2563EB] text-white" : "text-[#111111] hover:bg-[#F5F5F7]"
+                      }`}
+                    >
+                      {c.flag} {c.label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+          {socialLoading && (
+            <span className="text-[10px] text-[#6B6B6B] animate-pulse ml-auto">Analyzing social signals...</span>
+          )}
         </div>
       </div>
 
@@ -122,8 +208,8 @@ export default function ProductResearch() {
             <Globe size={16} className="text-[#6B6B6B] absolute -top-1 -right-1 animate-pulse" />
           </div>
           <div className="text-center">
-            <p className="text-base font-semibold text-[#111111]">Scanning Global Markets for Winning Products...</p>
-            <p className="text-xs text-[#6B6B6B] mt-1.5">Searching Amazon, AliExpress, and Google Shopping across {REGIONS.find(r => r.value === region)?.label}</p>
+            <p className="text-base font-semibold text-[#111111]">Scanning Markets + Social Trends...</p>
+            <p className="text-xs text-[#6B6B6B] mt-1.5">Searching {activeRegion?.label}, TikTok trends, and Facebook Ad Library</p>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs">
@@ -134,6 +220,12 @@ export default function ProductResearch() {
             </span>
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: "0.4s" }} /> Shopping
+            </span>
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black text-white text-xs">
+              <Music size={10} /> TikTok
+            </span>
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600 text-white text-xs">
+              f
             </span>
           </div>
         </div>
@@ -153,7 +245,7 @@ export default function ProductResearch() {
                   <Database size={12} /> Local Database
                 </span>
               )}
-              <span className="text-xs text-[#6B6B6B]">{REGIONS.find(r => r.value === region)?.flag} {REGIONS.find(r => r.value === region)?.label}</span>
+              <span className="text-xs text-[#6B6B6B]">{activeRegion?.flag} {activeRegion?.label}</span>
             </div>
           </div>
 
@@ -168,20 +260,42 @@ export default function ProductResearch() {
               const margin = p.profit_margin;
               const image = p.image || "";
               const orders = p.orders || p.reviews || 0;
+              const socialKey = p.id || p.title || "";
+              const social = socialScores[socialKey];
+              const soc = getSocialBadge(social?.score);
               return (
-                <div key={p.id || `live-${i}`} className="rounded-[24px] p-5 bg-[#F5F5F7] shadow-sm hover:shadow-md transition-all duration-200">
+                <div key={p.id || `live-${i}`} className="rounded-[24px] p-5 bg-[#F5F5F7] shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group">
                   {image && (
-                    <div className="rounded-xl overflow-hidden mb-3 bg-white h-32 flex items-center justify-center">
+                    <div className="rounded-xl overflow-hidden mb-3 bg-white h-32 flex items-center justify-center relative">
                       <img src={image} alt={title} className="max-h-full max-w-full object-contain" loading="lazy" onError={(e) => { e.target.style.display = "none" }} />
+                      {social && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1">
+                          {social.tiktokVideos > 0 && (
+                            <span className="bg-black/80 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                              <Music size={8} /> {social.tiktokVideos}
+                            </span>
+                          )}
+                          {social.facebookAds > 0 && (
+                            <span className="bg-blue-600/80 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                              f {social.facebookAds}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-[#111111] line-clamp-2">{title}</div>
-                      <div className="flex items-center gap-1.5 mt-1">
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.color}`}>
                           {badge.label}
                         </span>
+                        {soc && (
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${soc.color} inline-flex items-center gap-0.5`}>
+                            {soc.icon} {soc.label}
+                          </span>
+                        )}
                         {orders > 0 && <span className="text-[10px] text-[#6B6B6B]">{orders.toLocaleString()} orders</span>}
                       </div>
                     </div>
@@ -195,6 +309,12 @@ export default function ProductResearch() {
                       <DollarSign size={14} className="text-[#2563EB]" />
                       <span className="text-lg font-bold text-[#111111]">${price}</span>
                     </div>
+                    {social && (
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {social.tiktokVideos > 0 && <Music size={11} className="text-black" />}
+                        {social.facebookAds > 0 && <span className="text-[10px] text-blue-600 font-bold">f</span>}
+                      </div>
+                    )}
                   </div>
 
                   {(score || margin) && (
@@ -206,6 +326,19 @@ export default function ProductResearch() {
                         </div>
                       )}
                       {margin && <span className="text-xs text-green-600 font-medium">{margin}% margin</span>}
+                    </div>
+                  )}
+
+                  {social && (
+                    <div className="mt-2 flex items-center gap-2 text-[10px] text-[#6B6B6B] bg-white/50 rounded-xl px-2 py-1.5">
+                      <Zap size={10} className={social.score >= 50 ? "text-yellow-500" : "text-gray-400"} />
+                      <span className="font-medium">Social Proof: {social.score}</span>
+                      {social.tiktokVideos > 0 && (
+                        <span className="flex items-center gap-0.5"><Music size={9} /> {social.tiktokVideos}</span>
+                      )}
+                      {social.facebookAds > 0 && (
+                        <span className="flex items-center gap-0.5">f {social.facebookAds}</span>
+                      )}
                     </div>
                   )}
 

@@ -23,6 +23,9 @@ from app.modules.live_search import live_search, get_cached
 from app.services.scraper_service import scraper
 from app.services.global_search_service import search_global, get_search_health, reset_providers, validate_connections
 from app.services.keep_alive_service import keep_alive, mark_activity
+from app.services.tiktok_trends_service import search_tiktok_trends
+from app.services.facebook_ads_service import search_facebook_ads
+from app.services.social_proof_engine import compute_social_proof
 
 # ==================== FastAPI App ====================
 
@@ -125,6 +128,11 @@ class GlobalSearchRequest(BaseModel):
 
 class ScrapeRequest(BaseModel):
     url: str
+
+class SocialSearchRequest(BaseModel):
+    query: str
+    region: str = "usa"
+    max_results: int = 10
 
 # ==================== License API ====================
 
@@ -270,6 +278,41 @@ def launch_forecast(request: ForecastRequest):
 @app.get("/api/launch/ab-test")
 def launch_abtest():
     return campaign_manager.ab_test_plan()
+
+# ==================== Social Commerce Intelligence API ====================
+
+@app.post("/api/social/tiktok")
+def social_tiktok(request: SocialSearchRequest):
+    """Search TikTok trends for a product keyword — returns viral engagement metrics."""
+    result = search_tiktok_trends(request.query, region=request.region, max_videos=request.max_results)
+    return result
+
+@app.post("/api/social/facebook")
+def social_facebook(request: SocialSearchRequest):
+    """Search Facebook Ad Library for active ads related to a product keyword."""
+    result = search_facebook_ads(request.query, region=request.region, max_ads=request.max_results)
+    return result
+
+@app.post("/api/social/proof")
+def social_proof_score(request: SocialSearchRequest):
+    """Compute Social Proof Score (0–100) by combining TikTok, Facebook, and marketplace signals."""
+    tiktok = search_tiktok_trends(request.query, region=request.region, max_videos=8)
+    facebook = search_facebook_ads(request.query, region=request.region, max_ads=8)
+    result = compute_social_proof(tiktok_data=tiktok, facebook_data=facebook)
+    return {
+        "query": request.query,
+        "region": request.region,
+        **result,
+        "tiktok_summary": {
+            "total_videos": tiktok.get("total_videos", 0),
+            "total_views": tiktok.get("total_views", 0),
+            "avg_engagement_rate": tiktok.get("avg_engagement_rate", 0),
+        },
+        "facebook_summary": {
+            "total_ads": facebook.get("total_ads", 0),
+            "ad_intensity": facebook.get("ad_intensity", "none"),
+        },
+    }
 
 # ==================== Scraper API ====================
 

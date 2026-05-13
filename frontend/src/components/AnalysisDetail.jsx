@@ -1,6 +1,8 @@
-import { TrendingUp, DollarSign, Users, ShoppingCart, Star, ExternalLink, Zap, MessageCircle, Hash } from "lucide-react";
+import { useState, useEffect } from "react";
+import { TrendingUp, DollarSign, Users, ShoppingCart, Star, ExternalLink, Zap, MessageCircle, Hash, Music, Activity } from "lucide-react";
 import ProgressRing from "./ProgressRing";
 
+const API = "https://niklinx-engine-v2.onrender.com";
 const SCORE_THRESHOLDS = [
   { min: 80, color: "#22c55e", label: "Strong Buy" },
   { min: 50, color: "#f59e0b", label: "Consider" },
@@ -13,10 +15,36 @@ function getScoreColor(score) {
 }
 
 export default function AnalysisDetail({ data, product, onBack }) {
+  const [socialData, setSocialData] = useState(null);
+  const [loadingSocial, setLoadingSocial] = useState(false);
+
   if (!data) return null;
   const a = data.analysis;
   const p = data.product || product;
   const scoreInfo = getScoreColor(a.winning_score);
+
+  useEffect(() => {
+    if (!p?.name) return;
+    setLoadingSocial(true);
+    fetch(`${API}/api/social/proof`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: p.name, region: "usa", max_results: 5 }),
+    })
+      .then((r) => r.json())
+      .then((d) => setSocialData(d))
+      .catch(() => {})
+      .finally(() => setLoadingSocial(false));
+  }, [p?.name]);
+
+  const socialScore = socialData?.social_proof_score;
+  const socialInfo = socialScore >= 85 ? { label: "Viral", color: "#ef4444", icon: "🔥" }
+    : socialScore >= 70 ? { label: "Trending", color: "#22c55e", icon: "📈" }
+    : socialScore >= 50 ? { label: "Rising", color: "#f59e0b", icon: "⚡" }
+    : socialScore >= 30 ? { label: "Emerging", color: "#3b82f6", icon: "🌱" }
+    : socialScore != null ? { label: "Normal", color: "#6B6B6B", icon: "💤" }
+    : null;
+
+  const showSocial = socialData && socialScore != null;
 
   return (
     <div className="space-y-6">
@@ -30,12 +58,20 @@ export default function AnalysisDetail({ data, product, onBack }) {
             <h2 className="text-xl font-semibold text-[#111111]">{p?.name || product?.name}</h2>
             <p className="text-sm text-[#6B6B6B] mt-0.5">{p?.category || product?.category}</p>
           </div>
-          <span
-            className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
-            style={{ backgroundColor: scoreInfo.color }}
-          >
-            {scoreInfo.label}
-          </span>
+          <div className="flex items-center gap-2">
+            {showSocial && (
+              <span className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm flex items-center gap-1"
+                style={{ backgroundColor: socialInfo?.color || "#6B6B6B" }}
+              >
+                {socialInfo?.icon} {socialInfo?.label}
+              </span>
+            )}
+            <span className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
+              style={{ backgroundColor: scoreInfo.color }}
+            >
+              {scoreInfo.label}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -74,6 +110,42 @@ export default function AnalysisDetail({ data, product, onBack }) {
             </div>
           </div>
         </div>
+
+        {showSocial && (
+          <div className="mt-4 rounded-2xl p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Activity size={16} className="text-purple-600" />
+                <span className="text-sm font-medium text-purple-800">Social Proof Intelligence</span>
+              </div>
+              {loadingSocial && <span className="text-[10px] text-[#6B6B6B] animate-pulse">Updating...</span>}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="rounded-xl p-3 bg-white/80 shadow-sm text-center">
+                <div className="text-lg font-bold text-purple-700">{socialScore}</div>
+                <div className="text-[10px] text-[#6B6B6B]">Social Proof</div>
+              </div>
+              <div className="rounded-xl p-3 bg-white/80 shadow-sm text-center">
+                <div className="flex items-center justify-center gap-1 text-lg font-bold text-[#111111]">
+                  <Music size={12} /> {socialData?.tiktok_summary?.total_videos || 0}
+                </div>
+                <div className="text-[10px] text-[#6B6B6B]">TikTok Videos</div>
+              </div>
+              <div className="rounded-xl p-3 bg-white/80 shadow-sm text-center">
+                <div className="text-lg font-bold text-[#111111]">{(socialData?.tiktok_summary?.total_views || 0) >= 1000000 ? `${(socialData.tiktok_summary.total_views / 1000000).toFixed(1)}M` : (socialData?.tiktok_summary?.total_views || 0) >= 1000 ? `${(socialData.tiktok_summary.total_views / 1000).toFixed(1)}K` : socialData?.tiktok_summary?.total_views || 0}</div>
+                <div className="text-[10px] text-[#6B6B6B]">Total Views</div>
+              </div>
+              <div className="rounded-xl p-3 bg-white/80 shadow-sm text-center">
+                <div className="text-lg font-bold text-blue-600 f"> {socialData?.facebook_summary?.total_ads || 0}</div>
+                <div className="text-[10px] text-[#6B6B6B]">Facebook Ads</div>
+              </div>
+              <div className="rounded-xl p-3 bg-white/80 shadow-sm text-center">
+                <div className="text-lg font-bold text-[#111111] capitalize">{socialData?.facebook_summary?.ad_intensity || "N/A"}</div>
+                <div className="text-[10px] text-[#6B6B6B]">Ad Intensity</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {a.estimated_monthly_profit > 0 && (
           <div className="mt-4 rounded-2xl p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
