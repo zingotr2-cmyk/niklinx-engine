@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 
 CACHE_PATH = Path("data/live_cache.json")
 CACHE_TTL = 600
-PROVIDER_TIMEOUT = 18.0
+PROVIDER_TIMEOUT = 8.0
 MAX_RESULTS_PER_PROVIDER = 20
 
 HEADERS = {
@@ -143,7 +143,7 @@ def _estimate_margin(p: dict) -> float:
 
 # ==================== Base Scraper Provider with Exponential Backoff ====================
 
-def _backoff_sleep(attempt: int, base: float = 1.5):
+def _backoff_sleep(attempt: int, base: float = 0.5):
     jitter = random.uniform(0, 0.5)
     time.sleep(base * (2 ** attempt) + jitter)
 
@@ -159,7 +159,7 @@ class BaseProvider:
     def parse(self, html: str) -> list:
         raise NotImplementedError
 
-    def fetch(self, url: str, max_retries: int = 3) -> Optional[str]:
+    def fetch(self, url: str, max_retries: int = 1) -> Optional[str]:
         for attempt in range(max_retries + 1):
             try:
                 resp = self._client.get(url)
@@ -167,7 +167,7 @@ class BaseProvider:
                     provider_health.record_success(self.name)
                     return resp.text
                 if resp.status_code == 429:
-                    _backoff_sleep(attempt, base=3.0)
+                    _backoff_sleep(attempt, base=1.0)
                     continue
                 _backoff_sleep(attempt)
             except (httpx.TimeoutException, httpx.ConnectError) as e:
@@ -510,7 +510,10 @@ def search_global(query: str, region: str = "usa", max_results: int = 20) -> dic
         }
 
     merged = {}
+    search_deadline = time.time() + 15.0  # Hard 15s wall-clock timeout
     for name, provider in PROVIDERS.items():
+        if time.time() > search_deadline:
+            break
         try:
             raw_products = provider.search(query, region)
             for p in raw_products:
