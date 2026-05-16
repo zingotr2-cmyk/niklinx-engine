@@ -97,23 +97,10 @@ export default function Overview({ onNavigate }: { onNavigate: (view: string) =>
     console.log("[Overview] Fetching dashboard data");
 
     try {
-      const [healthData, statusData, mediaData, analyticsData] = await Promise.all([
+      const [healthData, statusData, mediaData] = await Promise.all([
         fetchJson<HealthData>(`${API}/api/health`, { cache: "no-store" }, signal),
         fetchJson<{ success: boolean; data: SystemStatus }>(`${API}/api/v1/system/status`, {}, signal),
         fetchJson<{ success: boolean; data: MediaStats }>(`${API}/api/v1/media/stats`, {}, signal),
-        (async () => {
-          const body = activeProduct?.id ? { product_id: activeProduct.id } : {};
-          try {
-            const r = await fetchJson<{ success: boolean; data: AnalyticsData }>(
-              `${API}/api/v1/analytics`,
-              { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
-              signal
-            );
-            return r.data;
-          } catch {
-            return null;
-          }
-        })(),
       ]);
 
       if (signal.aborted) return;
@@ -125,7 +112,6 @@ export default function Overview({ onNavigate }: { onNavigate: (view: string) =>
       setHealth(healthData);
       setSystemStatus(statusData.data);
       setMediaStats(mediaData.data);
-      setAnalytics(analyticsData);
       setLoading(false);
     } catch (err) {
       if (signal.aborted) return;
@@ -133,10 +119,9 @@ export default function Overview({ onNavigate }: { onNavigate: (view: string) =>
       setHealth(null);
       setSystemStatus(null);
       setMediaStats(null);
-      setAnalytics(null);
       setLoading(false);
     }
-  }, [activeProduct?.id]);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -147,6 +132,25 @@ export default function Overview({ onNavigate }: { onNavigate: (view: string) =>
       clearInterval(id);
     };
   }, [load]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const body = activeProduct?.id ? { product_id: activeProduct.id } : {};
+    fetch(`${API}/api/v1/analytics`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (!controller.signal.aborted) setAnalytics(json.data);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setAnalytics(null);
+      });
+    return () => controller.abort();
+  }, [activeProduct?.id]);
 
   const live = health?.status === "healthy" && health?.ai_service === "production";
   const a = analytics;

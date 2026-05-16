@@ -78,14 +78,21 @@ export default function StoreInsights() {
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+        const localController = new AbortController();
+        const timeoutId = setTimeout(() => localController.abort(), FETCH_TIMEOUT);
+
+        if (signal) {
+          signal.addEventListener("abort", () => {
+            clearTimeout(timeoutId);
+            localController.abort(signal.reason);
+          }, { once: true });
+        }
 
         const response = await fetch(`${API}/api/v1/analytics`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-          signal,
+          signal: localController.signal,
         });
 
         clearTimeout(timeoutId);
@@ -128,14 +135,24 @@ export default function StoreInsights() {
   }, [markSynced]);
 
   useEffect(() => {
-    if (!activeProduct?.id) {
-      console.log("[StoreInsights] No active product — showing global data");
-      setState({ data: null, loading: true, error: null, lastUpdated: null, isStale: false });
-      return;
-    }
     const controller = new AbortController();
     fetchAnalytics(activeProduct, controller.signal);
-    return () => controller.abort();
+
+    const timeout = setTimeout(() => {
+      controller.abort();
+      setState({
+        data: null,
+        loading: false,
+        error: "Request timeout - please refresh",
+        lastUpdated: null,
+        isStale: false,
+      });
+    }, 10000);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
   }, [activeProduct, refetchTrigger, fetchAnalytics]);
 
   useEffect(() => {
