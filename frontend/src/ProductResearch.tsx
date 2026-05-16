@@ -214,11 +214,17 @@ export default function ProductResearch() {
   };
 
   const handleViewSource = (product: ResearchProduct) => {
+    if (!product?.id) {
+      console.warn("[ProductResearch] Skipping — product has no id:", product?.title || product?.name);
+      const url = product?.product_url || `https://www.google.com/search?q=${encodeURIComponent(product?.title || product?.name || "")}`;
+      window.open(url, "_blank");
+      return;
+    }
     const title = product.title || product.name || "";
     const price = product.price || product.sale_price || 0;
     const image = product.image || "";
     const productForContext: Product = {
-      id: product.id || title,
+      id: product.id,
       url: product.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`,
       name: title,
       price,
@@ -249,11 +255,16 @@ export default function ProductResearch() {
   };
 
   const handleCopySource = (product: ResearchProduct) => {
+    if (!product?.id) {
+      console.warn("[ProductResearch] Skipping copy — product has no id:", product?.title || product?.name);
+      copySourceUrl(product?.product_url, product?.title || product?.name || "");
+      return;
+    }
     const title = product.title || product.name || "";
     const price = product.price || product.sale_price || 0;
     const image = product.image || "";
     const productForContext: Product = {
-      id: product.id || title,
+      id: product.id,
       url: product.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`,
       name: title,
       price,

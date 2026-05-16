@@ -80,7 +80,6 @@ export default function Sidebar({ activeView, onNavigate }) {
       if (data.status === "reset") {
         setSearchEngine(data.search_engine || "yellow");
         setSearchProviders(data.providers || {});
-        setActiveProduct(null);
         poll();
         toast("System Cache Cleared. Ready for new niche research.");
       } else {

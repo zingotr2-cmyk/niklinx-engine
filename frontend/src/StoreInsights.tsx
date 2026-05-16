@@ -128,6 +128,11 @@ export default function StoreInsights() {
   }, [markSynced]);
 
   useEffect(() => {
+    if (!activeProduct?.id) {
+      console.log("[StoreInsights] No active product — showing global data");
+      setState({ data: null, loading: true, error: null, lastUpdated: null, isStale: false });
+      return;
+    }
     const controller = new AbortController();
     fetchAnalytics(activeProduct, controller.signal);
     return () => controller.abort();

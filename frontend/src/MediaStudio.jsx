@@ -52,7 +52,7 @@ export default function MediaStudio() {
         <p className="text-[#6B6B6B] mt-1">AI-powered image and video generation for your active product.</p>
       </div>
 
-      {!product ? (
+      {!product?.id ? (
         <div className="rounded-[24px] p-12 bg-[#F5F5F7] shadow-sm flex flex-col items-center justify-center gap-4">
           <Image size={40} className="text-[#6B6B6B]" />
           <div className="text-center">
