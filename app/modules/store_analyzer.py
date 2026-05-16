@@ -66,9 +66,14 @@ def clone_store(brand_name: str = "MyBrand", store_id: str = None) -> dict:
         + "</body></html>"
     )
 
+    is_template = store_id is None or not any(
+        s["id"] == store_id for s in data["store_templates"]
+    ) if store_id else True
+
     return {
         "brand_name": brand_name,
         "cloned_from": store["name"],
+        "cloned_from_template": is_template,
         "sections": store["sections"],
         "design_specs": design,
         "html_outline": html,

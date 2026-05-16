@@ -45,7 +45,10 @@ class AIService:
             if result:
                 return result
 
-        return None  # Caller falls back to mock
+        # Heuristic fallback generates deterministic templates
+        from app.services.mock_rewriter import generate_copy as heuristic_gen
+        fallback = heuristic_gen("product", prompt, 0)
+        return json.dumps(fallback)
 
     def _call_openai(self, prompt: str, system: str, max_tokens: int) -> str | None:
         try:

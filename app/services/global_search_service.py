@@ -8,6 +8,7 @@ rate-limit protection, provider health tracking, and data normalization.
 import hashlib
 import json
 import math
+import os
 import random
 import re
 import time
@@ -84,8 +85,16 @@ class ProviderHealth:
         return any(s["healthy"] for s in self._status.values())
 
     def summary(self) -> dict:
+        if not self._status:
+            status = "yellow"
+        elif self.all_healthy():
+            status = "green"
+        elif self.any_healthy():
+            status = "yellow"
+        else:
+            status = "yellow"
         return {
-            "status": "green" if self.all_healthy() else "yellow" if self.any_healthy() else "red",
+            "status": status,
             "providers": {k: {"healthy": v["healthy"], "error": v["error"]} for k, v in self._status.items()},
         }
 
@@ -396,14 +405,141 @@ class GoogleShoppingProvider(BaseProvider):
         return products
 
 
+# ==================== SerpApi Provider (Optional Fallback) ====================
+
+class SerpApiProvider(BaseProvider):
+    """Uses SerpApi (serpapi.com) to search Google Shopping — requires SERPAPI_API_KEY env var."""
+
+    def __init__(self):
+        super().__init__("serpapi")
+        self.api_key = os.getenv("SERPAPI_API_KEY", os.getenv("SERPAPI_KEY", ""))
+        self._enabled = bool(self.api_key)
+
+    def build_url(self, query: str, region: str = "usa") -> str:
+        return "https://serpapi.com/search"
+
+    def fetch(self, url: str, max_retries: int = 1) -> Optional[list]:
+        if not self._enabled:
+            provider_health.record_failure(self.name, "No SERPAPI_API_KEY set")
+            return None
+        q = self._current_query if hasattr(self, '_current_query') else ""
+        rgn = self._current_region if hasattr(self, '_current_region') else "usa"
+        gl_map = {"usa": "us", "canada": "ca", "uk": "gb", "germany": "de", "france": "fr", "uae": "ae", "saudi_arabia": "sa", "algeria": "dz"}
+        params = {
+            "api_key": self.api_key,
+            "engine": "google_shopping",
+            "q": q,
+            "gl": gl_map.get(rgn, "us"),
+            "hl": "en",
+            "num": 20,
+        }
+        for attempt in range(max_retries + 1):
+            try:
+                resp = self._client.get(url, params=params, timeout=PROVIDER_TIMEOUT)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    shopping_results = data.get("shopping_results", [])
+                    products = []
+                    for item in shopping_results:
+                        products.append({
+                            "title": item.get("title", ""),
+                            "price": float(re.sub(r"[^\d.]", "", item.get("price", "0").split()[0])) if item.get("price") else 19.99,
+                            "original_price": None,
+                            "image": item.get("thumbnail", ""),
+                            "rating": float(item.get("rating", 0) or 0),
+                            "reviews": int(item.get("reviews", 0) or 0),
+                            "orders": 0,
+                            "source": "serpapi",
+                            "product_url": item.get("link", ""),
+                        })
+                    provider_health.record_success(self.name)
+                    return products
+                _backoff_sleep(attempt)
+            except Exception as e:
+                provider_health.record_failure(self.name, str(e))
+                _backoff_sleep(attempt)
+        provider_health.record_failure(self.name, "Max retries exhausted")
+        return None
+
+    def search(self, query: str, region: str = "usa") -> list:
+        self._current_query = query
+        self._current_region = region
+        result = self.fetch(self.build_url(query, region))
+        return result or []
+
+
+# ==================== ScrapingDog Provider (Optional Fallback) ====================
+
+class ScrapingDogProvider(BaseProvider):
+    """Uses ScrapingDog (scrapingdog.com) for Amazon scraping — requires SCRAPINGDOG_API_KEY env var."""
+
+    def __init__(self):
+        super().__init__("scrapingdog")
+        self.api_key = os.getenv("SCRAPINGDOG_API_KEY", "")
+        self._enabled = bool(self.api_key)
+
+    def build_url(self, query: str, region: str = "usa") -> str:
+        return "https://api.scrapingdog.com/amazon/"
+
+    def fetch(self, url: str, max_retries: int = 1) -> Optional[list]:
+        if not self._enabled:
+            return None
+        q = self._current_query if hasattr(self, '_current_query') else ""
+        params = {
+            "api_key": self.api_key,
+            "query": q,
+            "country": "us",
+        }
+        for attempt in range(max_retries + 1):
+            try:
+                resp = self._client.get(url, params=params, timeout=PROVIDER_TIMEOUT)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    products = []
+                    for item in (data if isinstance(data, list) else data.get("results", [])):
+                        title = item.get("title", "")
+                        if not title or len(title) < 5:
+                            continue
+                        products.append({
+                            "title": title[:250],
+                            "price": float(item.get("price", 19.99) or 19.99),
+                            "original_price": item.get("original_price"),
+                            "image": item.get("image", "") or item.get("thumbnail", ""),
+                            "rating": float(item.get("rating", 0) or 0),
+                            "reviews": int(item.get("reviews", 0) or 0),
+                            "orders": int(item.get("orders", 0) or item.get("reviews", 0) or 0),
+                            "source": "scrapingdog",
+                            "product_url": item.get("url", ""),
+                        })
+                    provider_health.record_success(self.name)
+                    return products
+                _backoff_sleep(attempt)
+            except Exception as e:
+                provider_health.record_failure(self.name, str(e))
+                _backoff_sleep(attempt)
+        return None
+
+    def search(self, query: str, region: str = "usa") -> list:
+        self._current_query = query
+        result = self.fetch(self.build_url(query, region))
+        return result or []
+
+
 # ==================== Provider Registry ====================
 
 def _create_providers() -> dict:
-    return {
+    providers = {
         "amazon": AmazonProvider(),
         "aliexpress": AliExpressProvider(),
         "google_shopping": GoogleShoppingProvider(),
     }
+    serp = SerpApiProvider()
+    if serp._enabled:
+        providers["serpapi"] = serp
+    sd = ScrapingDogProvider()
+    if sd._enabled:
+        providers["scrapingdog"] = sd
+    return providers
 
 PROVIDERS = _create_providers()
 

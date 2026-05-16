@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, Globe, Database, ExternalLink, MapPin, Music, Zap } from "lucide-react";
+import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, Globe, Database, ExternalLink, MapPin, Music, Zap, Copy } from "lucide-react";
 import AnalysisDetail from "./components/AnalysisDetail";
+import { toast } from "./components/Toast";
+import { useActiveProduct } from "./context/ProductContext";
 
 const API = "https://niklinx-engine-v2.onrender.com";
 
@@ -58,6 +60,7 @@ export default function ProductResearch() {
   const [analyzing, setAnalyzing] = useState(null);
   const [analyzedProduct, setAnalyzedProduct] = useState(null);
   const [regionTransition, setRegionTransition] = useState(false);
+  const { setActiveProduct, markSynced } = useActiveProduct();
   const pendingQuery = useRef("");
 
   const activeRegion = FLAT_REGIONS.find((r) => r.value === region);
@@ -127,6 +130,15 @@ export default function ProductResearch() {
     } catch { setResults(null); setLoading(false) }
   }, [query, region, fetchSocialScores]);
 
+  // Mark research as synced when results are ready
+  useEffect(() => {
+    if (results?.products?.length) {
+      const first = results.products[0];
+      const id = first.id || first.title || "";
+      if (id) markSynced("research", id);
+    }
+  }, [results, markSynced]);
+
   // Phase 3: Auto-refresh when region changes (if there's an active query)
   useEffect(() => {
     if (pendingQuery.current && !loading) {
@@ -144,6 +156,24 @@ export default function ProductResearch() {
     setShowRegionPicker(false);
     if (pendingQuery.current) {
       setRegionTransition(true);
+    }
+  };
+
+  const copySourceUrl = async (url, title) => {
+    const sourceUrl = url || `https://www.google.com/search?q=${encodeURIComponent(title)}`;
+    try {
+      await navigator.clipboard.writeText(sourceUrl);
+      toast("URL copied. Paste in Store Insights to begin manual cloning");
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = sourceUrl;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = 0;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      toast("URL copied. Paste in Store Insights to begin manual cloning");
     }
   };
 
@@ -355,12 +385,21 @@ export default function ProductResearch() {
                         Analyze
                       </button>
                     ) : (
-                      <a href={p.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`}
-                        target="_blank" rel="noopener noreferrer"
-                        className="text-xs px-3 py-1.5 rounded-xl bg-white text-[#111111] hover:bg-gray-50 transition-colors flex items-center gap-1 border border-gray-200"
-                      >
-                        <ExternalLink size={12} /> View Source
-                      </a>
+                      <div className="flex items-center gap-1">
+                        <a href={p.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`}
+                          target="_blank" rel="noopener noreferrer"
+                          onClick={() => setActiveProduct({ id: p.id || title, url: p.product_url, name: title, price, image, category: p.supplier || p.source || "general" })}
+                          className="text-xs px-3 py-1.5 rounded-xl bg-white text-[#111111] hover:bg-gray-50 transition-colors flex items-center gap-1 border border-gray-200"
+                        >
+                          <ExternalLink size={12} /> View Source
+                        </a>
+                        <button onClick={() => { copySourceUrl(p.product_url, title); setActiveProduct({ id: p.id || title, url: p.product_url, name: title, price, image, category: p.supplier || p.source || "general" }); }}
+                          className="text-xs p-1.5 rounded-xl bg-white text-[#6B6B6B] hover:bg-gray-50 hover:text-[#111111] transition-colors border border-gray-200"
+                          title="Copy URL for cloning"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </div>
                     )}
                     {p.region && <span className="text-[10px] text-[#6B6B6B]">{p.currency} {p.region.toUpperCase()}</span>}
                   </div>

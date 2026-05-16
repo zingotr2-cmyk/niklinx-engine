@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import DashboardLayout from "./DashboardLayout";
+import App from "./App";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <DashboardLayout />
+    <App />
   </React.StrictMode>
 );

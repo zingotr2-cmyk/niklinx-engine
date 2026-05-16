@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { LayoutDashboard, Search, Image, ShoppingCart, BarChart3, Settings, LogOut, Globe } from "lucide-react";
+import { LayoutDashboard, Search, Image, ShoppingCart, BarChart3, Settings, LogOut, Globe, RefreshCw, CheckCircle, RotateCw } from "lucide-react";
+import { toast } from "./Toast";
+import { useActiveProduct } from "../context/ProductContext";
 
 const API = "https://niklinx-engine-v2.onrender.com/api/health";
+const RESET_API = "https://niklinx-engine-v2.onrender.com/api/search/reset";
 
 const NAV = [
   { icon: LayoutDashboard, label: "Overview", view: "overview" },
@@ -23,11 +26,13 @@ const MAX_INTERVAL = 30000;
 const BACKOFF_BASE = 1000;
 
 export default function Sidebar({ activeView, onNavigate }) {
+  const { activeProduct, syncedModules, setActiveProduct } = useActiveProduct();
   const [status, setStatus] = useState("yellow");
   const [searchEngine, setSearchEngine] = useState("yellow");
   const [searchProviders, setSearchProviders] = useState({});
   const [consecutiveFails, setConsecutiveFails] = useState(0);
   const [retryCountdown, setRetryCountdown] = useState(null);
+  const [repairing, setRepairing] = useState(false);
   const intervalRef = useRef(null);
   const timerRef = useRef(null);
 
@@ -64,6 +69,29 @@ export default function Sidebar({ activeView, onNavigate }) {
       });
   }, []);
 
+  const repairConnection = useCallback(async () => {
+    if (repairing) return;
+    setRepairing(true);
+    try {
+      const r = await fetch(RESET_API, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+      });
+      const data = await r.json();
+      if (data.status === "reset") {
+        setSearchEngine(data.search_engine || "yellow");
+        setSearchProviders(data.providers || {});
+        setActiveProduct(null);
+        poll();
+        toast("System Cache Cleared. Ready for new niche research.");
+      } else {
+        toast("Failed to reset search connections. Please try again.", "error");
+      }
+    } catch {
+      toast("Failed to reset search connections. Please try again.", "error");
+    }
+    setRepairing(false);
+  }, [poll, repairing, setActiveProduct]);
+
   useEffect(() => {
     poll();
     intervalRef.current = setInterval(poll, INITIAL_INTERVAL);
@@ -89,20 +117,26 @@ export default function Sidebar({ activeView, onNavigate }) {
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
-        {NAV.map((item) => (
-          <button
-            key={item.view}
-            onClick={() => onNavigate(item.view)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeView === item.view
-                ? "bg-[#2563EB] text-white shadow-sm"
-                : "text-[#6B6B6B] hover:text-[#111111] hover:bg-[#F5F5F7]"
-            }`}
-          >
-            <item.icon size={18} strokeWidth={activeView === item.view ? 2.5 : 1.5} />
-            {item.label}
-          </button>
-        ))}
+        {NAV.map((item) => {
+          const synced = syncedModules[item.view] != null && syncedModules[item.view] === activeProduct?.id;
+          return (
+            <button
+              key={item.view}
+              onClick={() => onNavigate(item.view)}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                activeView === item.view
+                  ? "bg-[#2563EB] text-white shadow-sm"
+                  : "text-[#6B6B6B] hover:text-[#111111] hover:bg-[#F5F5F7]"
+              }`}
+            >
+              <item.icon size={18} strokeWidth={activeView === item.view ? 2.5 : 1.5} />
+              <span className="flex-1 text-left">{item.label}</span>
+              {synced && (
+                <CheckCircle size={12} className={activeView === item.view ? "text-white/80" : "text-green-500"} />
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       <div className="px-3 pb-6">
@@ -154,6 +188,16 @@ export default function Sidebar({ activeView, onNavigate }) {
             </div>
           )}
         </div>
+
+        <button
+          onClick={repairConnection}
+          disabled={repairing}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium border border-[#D4D4D4] text-[#6B6B6B] hover:text-[#111111] hover:border-[#B0B0B0] hover:bg-[#F5F5F7] active:bg-[#EEEEEE] disabled:opacity-40 disabled:pointer-events-none transition-all duration-200"
+        >
+          <RotateCw size={13} className={repairing ? "animate-spin" : ""} strokeWidth={1.5} />
+          {repairing ? "Clearing..." : "Repair Connection"}
+        </button>
+
         <div className="rounded-2xl p-3 bg-[#F5F5F7] flex items-center gap-2">
           <Globe size={12} className="text-[#6B6B6B]" />
           <span className="text-[10px] text-[#6B6B6B]">
@@ -163,7 +207,7 @@ export default function Sidebar({ activeView, onNavigate }) {
               reconnecting ? "text-yellow-500 animate-pulse" :
               searchEngine === "yellow" ? "text-yellow-600" : "text-red-500"
             }>
-              {searchEngine === "green" ? "Active" : reconnecting ? "Reconnecting..." : searchEngine === "yellow" ? "Partial" : "Offline"}
+              {searchEngine === "green" ? "Online 🌐" : reconnecting ? "Reconnecting..." : searchEngine === "yellow" ? "Partial" : "Offline"}
             </span>
           </span>
         </div>
