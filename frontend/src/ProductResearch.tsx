@@ -86,6 +86,7 @@ interface ResearchProduct {
   image?: string;
   supplier?: string;
   source?: string;
+  category?: string;
   product_url?: string;
   currency?: string;
   region?: string;
@@ -222,7 +223,7 @@ export default function ProductResearch() {
       name: title,
       price,
       image,
-      category: product.supplier || product.source || "general",
+      category: product.category || product.supplier || product.source || "general",
     };
     setActiveProduct(productForContext);
     console.log("[ProductResearch] Selected:", productForContext.id, productForContext.name);
@@ -257,7 +258,7 @@ export default function ProductResearch() {
       name: title,
       price,
       image,
-      category: product.supplier || product.source || "general",
+      category: product.category || product.supplier || product.source || "general",
     };
     setActiveProduct(productForContext);
     console.log("[ProductResearch] Selected (copy):", productForContext.id, productForContext.name);

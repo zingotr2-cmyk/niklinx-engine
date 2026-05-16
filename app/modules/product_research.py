@@ -88,39 +88,68 @@ def analyze(product_id: str) -> dict | None:
 
 
 async def ai_search(category: str = None, max_price: float = 100, min_rating: float = 0, region: str = "usa") -> dict:
-    """Search: global search (region-aware) first, live_search fallback, local database last."""
+    """Search: local database first, then global search (region-aware), live_search fallback."""
     results = {"products": [], "source": "local", "ai_active": False}
 
-    # 1) Use region-aware global search service
+    # Always fetch local DB products first (they have prod_ IDs for analytics)
+    keyword_products = local_search(category, max_price, min_rating) if category else []
+
+    # 1) Try region-aware global search service
     if category and category.strip():
         try:
             gs = global_search(category.strip(), region=region, max_results=25)
             if gs and gs.get("results"):
-                results["products"] = gs["results"]
                 results["source"] = "live"
                 results["region"] = region
-                for p in gs["results"][:3]:
+                if keyword_products:
+                    combined = []
+                    seen_ids = set()
+                    for lp in keyword_products:
+                        lp["source"] = "local"
+                        combined.append(lp)
+                        if lp.get("id"):
+                            seen_ids.add(lp["id"])
+                    for p in gs["results"]:
+                        if p.get("id") not in seen_ids:
+                            combined.append(p)
+                    results["products"] = combined
+                else:
+                    results["products"] = gs["results"]
+                for p in results["products"][:3]:
                     p["ai_insight"] = _mock_insight(p)
                 results["ai_active"] = True
                 return results
         except Exception:
             pass
 
-    # 2) Try legacy live search fallback
+    # 2) Try legacy live search fallback (with local DB products prepended)
     if category and category.strip():
         try:
             live_results = fetch_live(category.strip(), max_results=25)
             if live_results:
-                results["products"] = live_results
                 results["source"] = "live"
-                for p in live_results[:3]:
+                if keyword_products:
+                    combined = []
+                    seen_ids = set()
+                    for lp in keyword_products:
+                        lp["source"] = "local"
+                        combined.append(lp)
+                        if lp.get("id"):
+                            seen_ids.add(lp["id"])
+                    for p in live_results:
+                        if p.get("id") not in seen_ids:
+                            combined.append(p)
+                    results["products"] = combined
+                else:
+                    results["products"] = live_results
+                for p in results["products"][:3]:
                     p["ai_insight"] = _mock_insight(p)
                 results["ai_active"] = True
                 return results
         except Exception:
             pass
 
-    # 3) Fallback to local database
+    # 3) Fallback to local database only
     keyword_products = local_search(category, max_price, min_rating) if category else []
     all_products = local_search(None, max_price, min_rating)
 
