@@ -2,11 +2,22 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, ArrowRight, RefreshCw, TrendingUp, DollarSign, Star, Globe, Database, ExternalLink, MapPin, Music, Zap, Copy } from "lucide-react";
 import AnalysisDetail from "./components/AnalysisDetail";
 import { toast } from "./components/Toast";
-import { useActiveProduct } from "./context/ProductContext";
+import { useActiveProduct, type Product } from "./context/ProductContext";
 
 const API = "https://niklinx-engine-v2.onrender.com";
 
-const REGION_GROUPS = [
+interface Region {
+  value: string;
+  label: string;
+  flag: string;
+}
+
+interface RegionGroup {
+  label: string;
+  countries: Region[];
+}
+
+const REGION_GROUPS: RegionGroup[] = [
   {
     label: "North America",
     countries: [
@@ -32,16 +43,31 @@ const REGION_GROUPS = [
   },
 ];
 
-const FLAT_REGIONS = REGION_GROUPS.flatMap((g) => g.countries);
+const FLAT_REGIONS: Region[] = REGION_GROUPS.flatMap((g) => g.countries);
 
-const SOURCE_BADGES = {
+const SOURCE_BADGES: Record<string, { label: string; color: string }> = {
   aliexpress: { label: "AliExpress", color: "bg-orange-100 text-orange-700" },
   amazon: { label: "Amazon", color: "bg-yellow-100 text-yellow-700" },
   google_shopping: { label: "Shopping", color: "bg-blue-100 text-blue-700" },
   local: { label: "Local DB", color: "bg-gray-100 text-gray-600" },
 };
 
-function getSocialBadge(score) {
+interface SocialScore {
+  score: number;
+  classification: string;
+  icon: string;
+  label: string;
+  tiktokVideos: number;
+  facebookAds: number;
+}
+
+interface SocialBadge {
+  label: string;
+  icon: string;
+  color: string;
+}
+
+function getSocialBadge(score: number | undefined): SocialBadge | null {
   if (!score) return null;
   if (score >= 85) return { label: "Viral", icon: "🔥", color: "bg-red-100 text-red-600" };
   if (score >= 70) return { label: "Trending", icon: "📈", color: "bg-green-100 text-green-700" };
@@ -50,25 +76,54 @@ function getSocialBadge(score) {
   return { label: "Normal", icon: "💤", color: "bg-gray-100 text-gray-500" };
 }
 
+interface ResearchProduct {
+  id?: string;
+  title?: string;
+  name?: string;
+  price?: number;
+  sale_price?: number;
+  rating?: number;
+  image?: string;
+  supplier?: string;
+  source?: string;
+  product_url?: string;
+  currency?: string;
+  region?: string;
+  ai_score?: number;
+  winning_score?: number;
+  profit_margin?: number;
+  orders?: number;
+  reviews?: number;
+  ai_insight?: string;
+}
+
+interface ResearchResults {
+  products?: ResearchProduct[];
+  source?: string;
+  total?: number;
+  health?: Record<string, string>;
+  region?: string;
+}
+
 export default function ProductResearch() {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState("usa");
   const [showRegionPicker, setShowRegionPicker] = useState(false);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<ResearchResults | null>(null);
   const [loading, setLoading] = useState(false);
-  const [socialScores, setSocialScores] = useState({});
-  const [analyzing, setAnalyzing] = useState(null);
-  const [analyzedProduct, setAnalyzedProduct] = useState(null);
+  const [socialScores, setSocialScores] = useState<Record<string, SocialScore>>({});
+  const [analyzing, setAnalyzing] = useState<string | null>(null);
+  const [analyzedProduct, setAnalyzedProduct] = useState<unknown>(null);
   const [regionTransition, setRegionTransition] = useState(false);
   const { setActiveProduct, markSynced } = useActiveProduct();
   const pendingQuery = useRef("");
 
   const activeRegion = FLAT_REGIONS.find((r) => r.value === region);
 
-  const fetchSocialScores = useCallback(async (q, products) => {
+  const fetchSocialScores = useCallback(async (q: string, products: ResearchProduct[]) => {
     if (!products?.length) return;
     const firstFew = products.slice(0, 6);
-    const scores = {};
+    const scores: Record<string, SocialScore> = {};
     await Promise.all(
       firstFew.map(async (p) => {
         const searchTerm = p.title || p.name || q;
@@ -87,13 +142,13 @@ export default function ProductResearch() {
             tiktokVideos: data.tiktok_summary?.total_videos || 0,
             facebookAds: data.facebook_summary?.total_ads || 0,
           };
-        } catch {}
+        } catch { /* ignore */ }
       })
     );
     setSocialScores(scores);
   }, [region]);
 
-  const doSearch = useCallback(async (searchQuery, searchRegion) => {
+  const doSearch = useCallback(async (searchQuery?: string, searchRegion?: string) => {
     const q = searchQuery || query;
     const r = searchRegion || region;
     if (!q.trim()) return;
@@ -108,8 +163,8 @@ export default function ProductResearch() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body,
       });
-      const data = await resp.json();
-      if (data.products?.length < 5) {
+      const data: ResearchResults & { products?: ResearchProduct[] } = await resp.json();
+      if (data.products && data.products.length < 5) {
         try {
           const r2 = await fetch(`${API}/api/search`, {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -122,7 +177,7 @@ export default function ProductResearch() {
             fetchSocialScores(q, live.results);
             return;
           }
-        } catch {}
+        } catch { /* ignore */ }
       }
       setResults({ ...data, region: r });
       setLoading(false);
@@ -130,7 +185,6 @@ export default function ProductResearch() {
     } catch { setResults(null); setLoading(false) }
   }, [query, region, fetchSocialScores]);
 
-  // Mark research as synced when results are ready
   useEffect(() => {
     if (results?.products?.length) {
       const first = results.products[0];
@@ -139,7 +193,6 @@ export default function ProductResearch() {
     }
   }, [results, markSynced]);
 
-  // Phase 3: Auto-refresh when region changes (if there's an active query)
   useEffect(() => {
     if (pendingQuery.current && !loading) {
       setRegionTransition(true);
@@ -151,7 +204,7 @@ export default function ProductResearch() {
     }
   }, [region]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleRegionChange = (newRegion) => {
+  const handleRegionChange = (newRegion: string) => {
     setRegion(newRegion);
     setShowRegionPicker(false);
     if (pendingQuery.current) {
@@ -159,7 +212,24 @@ export default function ProductResearch() {
     }
   };
 
-  const copySourceUrl = async (url, title) => {
+  const handleViewSource = (product: ResearchProduct) => {
+    const title = product.title || product.name || "";
+    const price = product.price || product.sale_price || 0;
+    const image = product.image || "";
+    const productForContext: Product = {
+      id: product.id || title,
+      url: product.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`,
+      name: title,
+      price,
+      image,
+      category: product.supplier || product.source || "general",
+    };
+    setActiveProduct(productForContext);
+    console.log("[ProductResearch] Selected:", productForContext.id, productForContext.name);
+    window.open(productForContext.url, "_blank");
+  };
+
+  const copySourceUrl = async (url: string | undefined, title: string) => {
     const sourceUrl = url || `https://www.google.com/search?q=${encodeURIComponent(title)}`;
     try {
       await navigator.clipboard.writeText(sourceUrl);
@@ -168,7 +238,7 @@ export default function ProductResearch() {
       const textarea = document.createElement("textarea");
       textarea.value = sourceUrl;
       textarea.style.position = "fixed";
-      textarea.style.opacity = 0;
+      textarea.style.opacity = "0";
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand("copy");
@@ -177,7 +247,24 @@ export default function ProductResearch() {
     }
   };
 
-  const doAnalyze = async (productId) => {
+  const handleCopySource = (product: ResearchProduct) => {
+    const title = product.title || product.name || "";
+    const price = product.price || product.sale_price || 0;
+    const image = product.image || "";
+    const productForContext: Product = {
+      id: product.id || title,
+      url: product.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`,
+      name: title,
+      price,
+      image,
+      category: product.supplier || product.source || "general",
+    };
+    setActiveProduct(productForContext);
+    console.log("[ProductResearch] Selected (copy):", productForContext.id, productForContext.name);
+    copySourceUrl(product.product_url, title);
+  };
+
+  const doAnalyze = async (productId: string) => {
     setAnalyzing(productId);
     try {
       const r = await fetch(`${API}/api/research/analyze`, {
@@ -186,12 +273,13 @@ export default function ProductResearch() {
       });
       const data = await r.json();
       setAnalyzedProduct(data);
-    } catch {}
+    } catch { /* ignore */ }
     setAnalyzing(null);
   };
 
   if (analyzedProduct) {
-    return <AnalysisDetail data={analyzedProduct} onBack={() => setAnalyzedProduct(null)} />;
+    const onBack = () => setAnalyzedProduct(null);
+    return <AnalysisDetail data={analyzedProduct} onBack={onBack} />;
   }
 
   const isLiveSource = results?.source === "live";
@@ -251,7 +339,6 @@ export default function ProductResearch() {
         </div>
       </div>
 
-      {/* Phase 4: Dynamic Region Header */}
       {pendingQuery.current && results && !loading && (
         <div className={`transition-all duration-300 ${regionTransition ? "opacity-0 translate-y-[-8px]" : "opacity-100 translate-y-0"}`}>
           <div className="rounded-2xl px-5 py-3 bg-gradient-to-r from-[#F5F5F7] to-white shadow-sm border border-gray-100/50 flex items-center justify-between">
@@ -259,7 +346,7 @@ export default function ProductResearch() {
               <span className="text-lg">{activeRegion?.flag}</span>
               <div>
                 <span className="text-sm font-semibold text-[#111111]">Displaying Top Winners in {activeRegion?.label}</span>
-                <p className="text-[11px] text-[#6B6B6B] mt-0.5">{results.products?.length || 0} products • {isLiveSource ? "Live Markets" : "Database"} • {activeRegion?.flag} {(REGION_GROUPS.flatMap(g => g.countries).find(c => c.value === region)?.label || "").toUpperCase()}</p>
+                <p className="text-[11px] text-[#6B6B6B] mt-0.5">{results.products?.length || 0} products • {isLiveSource ? "Live Markets" : "Database"} • {activeRegion?.flag} {(FLAT_REGIONS.find(c => c.value === region)?.label || "").toUpperCase()}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -308,11 +395,12 @@ export default function ProductResearch() {
               const socialKey = p.id || p.title || "";
               const social = socialScores[socialKey];
               const soc = getSocialBadge(social?.score);
+              const isLocal = !!(p.id && p.id.startsWith("prod_"));
               return (
                 <div key={p.id || `live-${i}`} className="rounded-[24px] p-5 bg-[#F5F5F7] shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group">
                   {image && (
                     <div className="rounded-xl overflow-hidden mb-3 bg-white h-32 flex items-center justify-center relative">
-                      <img src={image} alt={title} className="max-h-full max-w-full object-contain" loading="lazy" onError={(e) => { e.target.style.display = "none" }} />
+                      <img src={image} alt={title} className="max-h-full max-w-full object-contain" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }} />
                       {social && (
                         <div className="absolute top-2 right-2 flex items-center gap-1">
                           {social.tiktokVideos > 0 && (
@@ -377,30 +465,31 @@ export default function ProductResearch() {
                   )}
 
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/50">
-                    {p.id && p.id.startsWith("prod_") ? (
-                      <button onClick={() => doAnalyze(p.id)} disabled={analyzing === p.id}
-                        className="text-xs px-3 py-1.5 rounded-xl bg-[#2563EB] text-white hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center gap-1"
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleViewSource(p)}
+                        className="text-xs px-3 py-1.5 rounded-xl bg-white text-[#111111] hover:bg-gray-50 transition-colors flex items-center gap-1 border border-gray-200"
                       >
-                        {analyzing === p.id ? <RefreshCw size={12} className="animate-spin" /> : <TrendingUp size={12} />}
-                        Analyze
+                        <ExternalLink size={12} /> View Source
                       </button>
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <a href={p.product_url || `https://www.google.com/search?q=${encodeURIComponent(title)}`}
-                          target="_blank" rel="noopener noreferrer"
-                          onClick={() => setActiveProduct({ id: p.id || title, url: p.product_url, name: title, price, image, category: p.supplier || p.source || "general" })}
-                          className="text-xs px-3 py-1.5 rounded-xl bg-white text-[#111111] hover:bg-gray-50 transition-colors flex items-center gap-1 border border-gray-200"
+                      {isLocal && (
+                        <button onClick={() => doAnalyze(p.id!)} disabled={analyzing === p.id}
+                          className="text-xs px-3 py-1.5 rounded-xl bg-[#2563EB] text-white hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center gap-1"
                         >
-                          <ExternalLink size={12} /> View Source
-                        </a>
-                        <button onClick={() => { copySourceUrl(p.product_url, title); setActiveProduct({ id: p.id || title, url: p.product_url, name: title, price, image, category: p.supplier || p.source || "general" }); }}
-                          className="text-xs p-1.5 rounded-xl bg-white text-[#6B6B6B] hover:bg-gray-50 hover:text-[#111111] transition-colors border border-gray-200"
-                          title="Copy URL for cloning"
-                        >
-                          <Copy size={12} />
+                          {analyzing === p.id ? <RefreshCw size={12} className="animate-spin" /> : <TrendingUp size={12} />}
+                          Analyze
                         </button>
-                      </div>
-                    )}
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleCopySource(p)}
+                        className="text-xs p-1.5 rounded-xl bg-white text-[#6B6B6B] hover:bg-gray-50 hover:text-[#111111] transition-colors border border-gray-200"
+                        title="Copy URL for cloning"
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </div>
                     {p.region && <span className="text-[10px] text-[#6B6B6B]">{p.currency} {p.region.toUpperCase()}</span>}
                   </div>
 
